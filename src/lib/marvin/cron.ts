@@ -43,7 +43,7 @@ export async function runDailyCron(): Promise<CronResult> {
     };
   }
 
-  if (state.lastCronDay === today && state.mode === "counting" && state.lastTweet) {
+  if (state.lastCronDay === today && state.mode === "counting" && state.lastTweet?.postedToX) {
     return {
       ok: true,
       action: "skipped",
@@ -57,7 +57,7 @@ export async function runDailyCron(): Promise<CronResult> {
   if (state.mode === "day0") {
     state.mode = "counting";
     state.day = 1;
-  } else if (state.lastTweet && state.lastCronDay) {
+  } else if (state.lastTweet?.postedToX && state.lastCronDay && state.lastCronDay !== today) {
     state.day = Math.max(1, state.day + 1);
   } else {
     state.day = Math.max(1, state.day || 1);
@@ -99,7 +99,7 @@ export async function runDailyCron(): Promise<CronResult> {
   };
   state.lastTweet = tweet;
   state.lastCronAt = now.toISOString();
-  state.lastCronDay = today;
+  if (postedToX) state.lastCronDay = today;
   await saveState(state);
 
   return {
