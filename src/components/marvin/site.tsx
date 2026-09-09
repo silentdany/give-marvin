@@ -63,13 +63,13 @@ function DayLockup({ day, dayZero }: { day: number; dayZero: boolean }) {
         {digits.map((d, i) => (
           <span
             key={`${d}-${i}`}
-            className="digit-orb grid size-20 place-items-center rounded-full font-display text-digit font-extrabold leading-none text-phosphor tabular-nums sm:size-24"
+            className="digit-orb grid size-20 place-items-center rounded-full font-display text-digit font-extrabold leading-none text-phosphor tabular-nums sm:size-24 md:size-28"
           >
             {d}
           </span>
         ))}
       </span>
-      <span className="max-w-xl text-lg font-normal leading-snug text-fg-bright sm:text-xl">
+      <span className="max-w-3xl text-xl font-normal leading-snug text-fg-bright sm:text-2xl">
         {dayZero ? (
           DAY0_TITLE
         ) : (
@@ -136,15 +136,15 @@ export function MarvinSite({ initial }: { initial: PublicState }) {
 
   return (
     <div className="corridor flex min-h-dvh flex-col">
-      <div className="relative z-10 mx-auto flex w-full max-w-xl flex-col px-6 py-16 pb-28 sm:px-10 md:px-14 md:py-20">
-        <div className="stagger mx-auto flex w-full max-w-lg flex-col gap-16 md:gap-20">
+      <div className="relative z-10 mx-auto flex w-full max-w-4xl flex-col px-6 py-16 pb-28 sm:px-10 md:px-16 md:py-20 lg:px-20 lg:py-24">
+        <div className="stagger flex w-full flex-col gap-16 md:gap-24">
           <header className="flex items-center gap-4">
             <img
               src="/marvin.png"
               alt="Marvin"
-              width={72}
-              height={72}
-              className="size-14 shrink-0 sm:size-16"
+              width={88}
+              height={88}
+              className="size-16 shrink-0 sm:size-20"
             />
             <div>
               <p className="text-sm font-medium tracking-caps text-fg-bright">GIVE MARVIN</p>
