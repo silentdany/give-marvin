@@ -61,18 +61,7 @@ Without X credentials the site still runs. Cron will compose the tweet, skip pos
 
 ## Cron
 
-[`vercel.json`](./vercel.json):
-
-```json
-{
-  "crons": [
-    {
-      "path": "/api/cron",
-      "schedule": "0 11 * * *"
-    }
-  ]
-}
-```
+Daily `0 11 * * *` → `/api/cron`. Registered in the Nitro Vercel output (`vite.config.ts`), not in `vercel.json` — Nitro's build output is the config Vercel actually reads, and listing the same job twice makes the deploy fail. I checked.
 
 `GET` or `POST` `/api/cron` with `Authorization: Bearer $CRON_SECRET`.
 

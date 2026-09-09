@@ -110,21 +110,6 @@
     background: linear-gradient(to top, rgb(255 255 255 / 0.35), transparent);
   }
 
-  .marvin-stage {
-    position: relative;
-    overflow: hidden;
-    background: var(--color-bg);
-  }
-
-  .marvin-shot {
-    display: block;
-    width: 100%;
-    height: 100%;
-    object-fit: contain;
-    object-position: center 80%;
-    filter: grayscale(0.22) saturate(0.75) contrast(0.96);
-  }
-
   .digit-orb {
     background: var(--color-bg-elevated);
     box-shadow: 0 0 0 1px rgb(40 40 38 / 0.1);
@@ -207,8 +192,5 @@
   .cursor-block {
     animation: none;
     opacity: 0.8;
-  }
-  .marvin-shot {
-    filter: none;
   }
 }

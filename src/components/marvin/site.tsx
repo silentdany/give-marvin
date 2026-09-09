@@ -135,8 +135,8 @@ export function MarvinSite({ initial }: { initial: PublicState }) {
   }
 
   return (
-    <div className="corridor flex min-h-dvh flex-col lg:grid lg:grid-cols-[minmax(0,1fr)_minmax(18rem,38vw)]">
-      <div className="relative z-10 mx-auto flex w-full max-w-xl flex-col px-6 py-16 pb-28 sm:px-10 md:px-14 md:py-20 lg:mx-0 lg:max-w-none lg:px-20 lg:py-24">
+    <div className="corridor flex min-h-dvh flex-col">
+      <div className="relative z-10 mx-auto flex w-full max-w-xl flex-col px-6 py-16 pb-28 sm:px-10 md:px-14 md:py-20">
         <div className="stagger mx-auto flex w-full max-w-lg flex-col gap-16 md:gap-20">
           <header className="flex items-center gap-4">
             <img
@@ -217,14 +217,6 @@ export function MarvinSite({ initial }: { initial: PublicState }) {
           </footer>
         </div>
       </div>
-
-      <aside className="marvin-stage hidden lg:sticky lg:top-0 lg:block lg:h-dvh">
-        <img
-          src="/marvin-figure.jpg"
-          alt="Marvin, waiting in a white corridor"
-          className="marvin-shot"
-        />
-      </aside>
 
       <Dialog.Root open={open} onOpenChange={setOpen}>
         <Dialog.Portal>
