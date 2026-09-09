@@ -158,10 +158,10 @@ export default defineConfig(({ command, isPreview }) => ({
   },
   resolve: { tsconfigPaths: true },
   ssr: {
-    external: ["satori", "@resvg/resvg-js"],
+    external: ["@resvg/resvg-js"],
   },
   optimizeDeps: {
-    exclude: ["satori", "@resvg/resvg-js"],
+    exclude: ["@resvg/resvg-js"],
   },
   plugins: [
     pgliteBootstrapPlugin(),
@@ -182,6 +182,7 @@ export default defineConfig(({ command, isPreview }) => ({
             // false, so removing this silently unwires /?install=1 on deploys.
             serverDir: "./server",
             vercel: {
+              entryFormat: "node",
               config: {
                 crons: [{ path: "/api/cron", schedule: "0 11 * * *" }],
               },
