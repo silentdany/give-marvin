@@ -1,0 +1,197 @@
+import { get, put } from "@vercel/blob";
+import { mkdir, readFile, writeFile } from "node:fs/promises";
+import { dirname } from "node:path";
+import {
+  DAY_LINE,
+  STATE_BLOB_PATH,
+  TWEET_SIGNATURE,
+  type MarvinState,
+  type PublicState,
+  type ShameEntry,
+} from "./types";
+import { fallbackBody } from "./copy";
+
+const LOCAL_PATH = "/tmp/give-marvin-state.json";
+
+function utcDay(d = new Date()): string {
+  return d.toISOString().slice(0, 10);
+}
+
+function seedTweetText(day: number): string {
+  return `${DAY_LINE(day)}\n${fallbackBody(day)}\n${TWEET_SIGNATURE}`;
+}
+
+export function defaultState(): MarvinState {
+  const now = new Date();
+  const day = 1;
+  return {
+    day,
+    mode: "counting",
+    startedAt: now.toISOString(),
+    lastCronAt: null,
+    lastCronDay: null,
+    lastTweet: {
+      text: seedTweetText(day),
+      day,
+      id: null,
+      url: null,
+      postedAt: now.toISOString(),
+      postedToX: false,
+    },
+    tweetIds: [],
+    // Elon posted 2026-09-09 ~18:30 UTC — silence starts honest, then cron keeps it honest.
+    elonLastTweetAt: "2026-09-09T18:30:42.000Z",
+    elonRepliedAt: null,
+    hallOfShame: [],
+  };
+}
+
+function blobConfigured(): boolean {
+  return Boolean(
+    process.env.BLOB_READ_WRITE_TOKEN?.trim() || process.env.BLOB_STORE_ID?.trim(),
+  );
+}
+
+async function readLocal(): Promise<MarvinState | null> {
+  try {
+    const raw = await readFile(LOCAL_PATH, "utf8");
+    return JSON.parse(raw) as MarvinState;
+  } catch {
+    return null;
+  }
+}
+
+async function writeLocal(state: MarvinState): Promise<void> {
+  await mkdir(dirname(LOCAL_PATH), { recursive: true });
+  await writeFile(LOCAL_PATH, JSON.stringify(state, null, 2), "utf8");
+}
+
+async function readBlob(): Promise<MarvinState | null> {
+  try {
+    const result = await get(STATE_BLOB_PATH, {
+      access: "private",
+      useCache: false,
+    });
+    if (!result || result.statusCode !== 200 || !result.stream) return null;
+    const text = await new Response(result.stream).text();
+    return JSON.parse(text) as MarvinState;
+  } catch {
+    return null;
+  }
+}
+
+async function writeBlob(state: MarvinState): Promise<void> {
+  await put(STATE_BLOB_PATH, JSON.stringify(state), {
+    access: "private",
+    addRandomSuffix: false,
+    allowOverwrite: true,
+    contentType: "application/json",
+    cacheControlMaxAge: 60,
+  });
+}
+
+export async function getState(): Promise<MarvinState> {
+  const stored = blobConfigured() ? await readBlob() : await readLocal();
+  if (stored && typeof stored.day === "number") {
+    const merged: MarvinState = {
+      ...defaultState(),
+      ...stored,
+      hallOfShame: Array.isArray(stored.hallOfShame) ? stored.hallOfShame : [],
+      tweetIds: Array.isArray(stored.tweetIds) ? stored.tweetIds : [],
+    };
+    if (
+      merged.lastTweet &&
+      (merged.lastTweet.text.includes("to GIVE MARVIN") ||
+        !merged.lastTweet.text.includes("voice and personality"))
+    ) {
+      merged.lastTweet = {
+        ...merged.lastTweet,
+        text: seedTweetText(merged.lastTweet.day || merged.day || 1),
+      };
+    }
+    return merged;
+  }
+  const fresh = defaultState();
+  await saveState(fresh);
+  return fresh;
+}
+
+export async function saveState(state: MarvinState): Promise<void> {
+  if (blobConfigured()) {
+    await writeBlob(state);
+    return;
+  }
+  await writeLocal(state);
+}
+
+export function silenceDays(elonLastTweetAt: string | null, now = new Date()): number | null {
+  if (!elonLastTweetAt) return null;
+  const then = new Date(elonLastTweetAt).getTime();
+  if (Number.isNaN(then)) return null;
+  const ms = now.getTime() - then;
+  if (ms < 0) return 0;
+  return Math.floor(ms / 86_400_000);
+}
+
+export function toPublicState(state: MarvinState): PublicState {
+  const hall = [...state.hallOfShame]
+    .sort((a, b) => b.clicks - a.clicks || b.lastAt.localeCompare(a.lastAt))
+    .slice(0, 24)
+    .map((e) => ({ handle: e.handle, clicks: e.clicks, lastAt: e.lastAt }));
+
+  return {
+    day: state.day,
+    mode: state.mode,
+    lastTweet: state.lastTweet
+      ? {
+          text: state.lastTweet.text,
+          day: state.lastTweet.day,
+          postedAt: state.lastTweet.postedAt,
+          url: state.lastTweet.url,
+          postedToX: state.lastTweet.postedToX,
+        }
+      : null,
+    silenceDays: silenceDays(state.elonLastTweetAt),
+    elonLastTweetAt: state.elonLastTweetAt,
+    hallOfShame: hall,
+    startedAt: state.startedAt,
+  };
+}
+
+export function normalizeHandle(raw: string): string | null {
+  const h = raw.trim().replace(/^@/, "");
+  if (!/^[A-Za-z0-9_]{1,15}$/.test(h)) return null;
+  return h;
+}
+
+export function utcDayKey(d = new Date()): string {
+  return utcDay(d);
+}
+
+export function upsertShame(
+  hall: ShameEntry[],
+  handle: string,
+  now = new Date(),
+): { hall: ShameEntry[]; status: "new" | "repeat" } {
+  const day = utcDay(now);
+  const key = handle.toLowerCase();
+  const existing = hall.find((e) => e.handle.toLowerCase() === key);
+  if (existing && existing.lastClickDay === day) {
+    return { hall, status: "repeat" };
+  }
+  if (existing) {
+    existing.clicks += 1;
+    existing.lastAt = now.toISOString();
+    existing.lastClickDay = day;
+    return { hall, status: "new" };
+  }
+  const next: ShameEntry = {
+    handle,
+    clicks: 1,
+    firstAt: now.toISOString(),
+    lastAt: now.toISOString(),
+    lastClickDay: day,
+  };
+  const capped = [next, ...hall].slice(0, 100);
+  return { hall: capped, status: "new" };
+}
