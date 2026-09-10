@@ -1,5 +1,5 @@
-import { DAY_LINE, SITE_URL } from "./types";
-import { DAY_42_TWEET, FALLBACK_BODIES, MARVIN_SYSTEM, composeTweet, fallbackBody } from "./copy";
+import { DAY_LINE, SITE_URL } from "./types.ts";
+import { DAY_42_TWEET, FALLBACK_BODIES, MARVIN_SYSTEM, composeTweet, fallbackBody } from "./copy.ts";
 
 const XAI_URL = "https://api.x.ai/v1/chat/completions";
 const GATEWAY_URL = "https://ai-gateway.vercel.sh/v1/chat/completions";

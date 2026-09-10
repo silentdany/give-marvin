@@ -1,7 +1,7 @@
-import { generateMarvinTweet } from "./grok";
-import { saveState, getState } from "./store";
-import { detectElonEvent, fetchElonLastTweetAt, fetchTweetStats, postToX, xPostConfigured } from "./x";
-import type { ElonScenario, MarvinState, StoredTweet } from "./types";
+import { generateMarvinTweet } from "./grok.ts";
+import { saveState, getState } from "./store.ts";
+import { detectElonEvent, fetchElonLastTweetAt, fetchTweetStats, postToX, xPostConfigured } from "./x.ts";
+import type { ElonScenario, MarvinState, StoredTweet } from "./types.ts";
 
 function utcDay(d = new Date()): string {
   return d.toISOString().slice(0, 10);

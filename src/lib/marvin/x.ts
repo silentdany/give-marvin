@@ -1,5 +1,5 @@
 import { TwitterApi } from "twitter-api-v2";
-import { CREATOR_HANDLE, ELON_HANDLE, type ElonEvent, type ElonScenario, type TweetStats } from "./types";
+import { CREATOR_HANDLE, ELON_HANDLE, type ElonEvent, type ElonScenario, type TweetStats } from "./types.ts";
 
 const ELON_USER_ID = "44196397";
 

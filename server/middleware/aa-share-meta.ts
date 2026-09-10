@@ -14,7 +14,10 @@ function shareOrigin(event: { url: URL; req: { headers: Headers } }): string {
 
 function inject(response: Response, origin: string): Response {
   if (!response.body) return response;
-  const image = `${origin}/api/og`;
+  // The UTC day is the cache key X actually respects: one post per day, one new
+  // image URL per day. Without a `day` param the card renders the current
+  // counter, so the date is enough to keep the unfurl honest.
+  const image = `${origin}/og?v=${new Date().toISOString().slice(0, 10)}`;
   const tags = [
     `<meta property="og:image" content="${image}">`,
     `<meta property="og:image:secure_url" content="${image}">`,

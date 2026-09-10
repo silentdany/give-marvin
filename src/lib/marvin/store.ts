@@ -1,8 +1,8 @@
 import { get, put } from "@vercel/blob";
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { dirname } from "node:path";
-import { STATE_BLOB_PATH, type MarvinState, type PublicState, type ShameEntry, type TweetStats } from "./types";
-import { composeTweet, fallbackBody } from "./copy";
+import { STATE_BLOB_PATH, type MarvinState, type PublicState, type ShameEntry, type TweetStats } from "./types.ts";
+import { composeTweet, fallbackBody } from "./copy.ts";
 
 const LOCAL_PATH = "/tmp/give-marvin-state.json";
 

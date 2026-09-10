@@ -1,15 +1,18 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
-  <rect width="32" height="32" fill="#ffffff"/>
-  <circle cx="16" cy="16" r="13" fill="#f3f3f1" stroke="#d2d2ce" stroke-width="0.6"/>
-  <clipPath id="l"><rect x="0" y="0" width="16" height="32"/></clipPath>
-  <clipPath id="r"><rect x="16" y="0" width="16" height="32"/></clipPath>
+<!-- The static split. Numbers come from src/lib/marvin/orb-geometry.ts —
+     a static asset cannot import, so keep the two in step by hand.
+     Left half: the normal orb's eye. Right half: Marvin's. -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200">
+  <clipPath id="l"><rect x="0" y="0" width="100" height="200"/></clipPath>
+  <clipPath id="r"><rect x="100" y="0" width="100" height="200"/></clipPath>
+  <rect width="200" height="200" fill="#ffffff"/>
+  <circle cx="100" cy="100" r="94" fill="#fafaf8" stroke="#e2e2de" stroke-width="2"/>
   <g clip-path="url(#l)">
-    <ellipse cx="11" cy="15" rx="3.2" ry="1.8" fill="#fff" stroke="#2c2c2a" stroke-width="1.1"/>
-    <ellipse cx="21" cy="15" rx="3.2" ry="1.8" fill="#fff" stroke="#2c2c2a" stroke-width="1.1"/>
+    <ellipse cx="62" cy="94" rx="24" ry="14" fill="#ffffff" stroke="#2c2c2a" stroke-width="6"/>
+    <ellipse cx="138" cy="94" rx="24" ry="14" fill="#ffffff" stroke="#2c2c2a" stroke-width="6"/>
   </g>
   <g clip-path="url(#r)">
-    <polygon points="8.6,13.4 13.4,13.4 11,18.6" fill="#c23b3b"/>
-    <polygon points="18.6,14 23.4,14 21,19.4" fill="#c23b3b"/>
+    <polygon points="38,86 86,76 62,128" fill="#c23b3b"/>
+    <polygon points="114,76 162,86 138,128" fill="#c23b3b"/>
   </g>
-  <line x1="16" y1="3" x2="16" y2="29" stroke="#d2d2ce" stroke-width="0.6"/>
+  <line x1="100" y1="10" x2="100" y2="190" stroke="#e2e2de" stroke-width="2"/>
 </svg>

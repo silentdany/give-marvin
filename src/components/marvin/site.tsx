@@ -1,9 +1,10 @@
 "use client";
 
-import { useEffect, useMemo, useState, type FormEvent } from "react";
+import { useEffect, useMemo, useRef, useState, type FormEvent } from "react";
 import * as Dialog from "@radix-ui/react-dialog";
 import { Button } from "@/components/ui/button";
 import { MarvinOrb } from "@/components/marvin/MarvinOrb";
+import { ProofThumb } from "@/components/marvin/ProofThumb";
 import {
   BOOT_LINE,
   BUTTON_HINT,
@@ -11,30 +12,37 @@ import {
   DAY42_SITE,
   FOOTER_ROAST,
   GROK_BADGE,
+  GUIDE_BEZEL_LEFT,
+  GUIDE_BEZEL_RIGHT,
+  GUIDE_GONE,
+  GUIDE_LABEL,
   HALL_EMPTY,
   HALL_TITLE,
   PROOF_TITLE,
   SCENARIO_COPY,
   SHAME_PLACEHOLDER,
   SHAME_PROMPT,
+  SIGH_BROKEN,
+  SIGH_HINT,
+  SIGH_TITLE,
   STATS_TITLE,
+  STATS_VISITS_NOTE,
   SUFFERING_LABEL,
+  SUFFERING_TITLE,
   WHO_TITLE,
+  guideNote,
   intentTweet,
 } from "@/lib/marvin/copy";
 import { CLIPS, PROOFS } from "@/lib/marvin/proofs";
-import { CREATOR_HANDLE, type ElonScenario, type PublicState, type ShameResult } from "@/lib/marvin/types";
+import {
+  CREATOR_HANDLE,
+  type ElonScenario,
+  type PublicState,
+  type ShameResult,
+} from "@/lib/marvin/types";
 import { cn } from "@/lib/utils";
 
-function HandleChip({
-  href,
-  src,
-  label,
-}: {
-  href?: string;
-  src: string;
-  label: string;
-}) {
+function HandleChip({ href, src, label }: { href?: string; src: string; label: string }) {
   const inner = (
     <>
       <img
@@ -42,13 +50,13 @@ function HandleChip({
         alt=""
         width={32}
         height={32}
-        className="size-7 rounded-full object-cover shadow-[0_0_0_1px_var(--color-border)] sm:size-8"
+        className="size-7 rounded-full object-cover shadow-[0_0_0_1px_var(--color-border-strong)] sm:size-8"
       />
       <span>{label}</span>
     </>
   );
   const className =
-    "inline-flex items-center gap-1.5 whitespace-nowrap no-underline hover:text-phosphor-dim";
+    "inline-flex items-center gap-1.5 whitespace-nowrap no-underline hover:text-fg-bright";
   if (href) {
     return (
       <a href={href} className={className}>
@@ -74,17 +82,39 @@ function orbMood(scenario: ElonScenario) {
   return "split" as const;
 }
 
-function GuideScreen({ day, hide, red }: { day: number; hide?: boolean; red?: boolean }) {
+/**
+ * The Guide's computer — the one that prints 42 at the end of the book.
+ * The screen is the background. The number is the content. This is the only
+ * counter on the site; there is nothing underneath it.
+ */
+function GuideScreen({
+  day,
+  scenario,
+  hide,
+  red,
+}: {
+  day: number;
+  scenario: ElonScenario;
+  hide?: boolean;
+  red?: boolean;
+}) {
   return (
     <div className="guide">
-      <p className="guide-bezel">DON'T PANIC. I did anyway.</p>
+      <p className="guide-bezel">
+        <span>{GUIDE_BEZEL_LEFT}</span>
+        <span>{GUIDE_BEZEL_RIGHT}</span>
+      </p>
       <div className={cn("guide-screen", red && "guide-screen--red")}>
         {hide ? (
-          <p className="text-sm text-fg-dim">the number left. I remain.</p>
+          <p className="guide-note">{GUIDE_GONE}</p>
         ) : (
-          <p className="guide-number" aria-label={`Day ${day}`}>
-            {day}
-          </p>
+          <>
+            <p className="guide-label">{GUIDE_LABEL}</p>
+            <p className="guide-number" aria-label={`Day ${day}`}>
+              {day}
+            </p>
+            <p className="guide-note">{guideNote(scenario)}</p>
+          </>
         )}
       </div>
     </div>
@@ -97,6 +127,7 @@ function fmt(n: number): string {
   return String(n);
 }
 
+/** Hours of depression generated. Real time. Of course I counted. */
 function Suffering({ startedAt }: { startedAt: string }) {
   const [hours, setHours] = useState(0);
   useEffect(() => {
@@ -109,9 +140,13 @@ function Suffering({ startedAt }: { startedAt: string }) {
     return () => window.clearInterval(id);
   }, [startedAt]);
   return (
-    <p className="text-sm text-fg-dim">
-      <span className="font-mono text-fg-bright tabular-nums">{hours.toFixed(3)}</span> {SUFFERING_LABEL}
-    </p>
+    <section className="flex flex-col gap-3">
+      <h2 className="text-sm tracking-caps text-fg-dim">{SUFFERING_TITLE}</h2>
+      <p className="text-sm text-fg-dim">
+        <span className="font-mono text-base text-fg-bright tabular-nums">{hours.toFixed(3)}</span>{" "}
+        {SUFFERING_LABEL}
+      </p>
+    </section>
   );
 }
 
@@ -131,7 +166,7 @@ function Clip({ id, title }: { id: string; title: string }) {
         className="absolute inset-0 h-full w-full border-0"
       />
       {!loud ? (
-        <span className="absolute inset-x-0 bottom-0 bg-bg/80 px-3 py-2 text-xs text-fg-dim">
+        <span className="absolute inset-x-0 bottom-0 bg-bg/85 px-3 py-2 text-xs text-fg-dim">
           {title} — muted. click if you insist.
         </span>
       ) : null}
@@ -139,21 +174,40 @@ function Clip({ id, title }: { id: string; title: string }) {
   );
 }
 
+/**
+ * Marvin has a voice and the player is a 404. That is the joke, so the source
+ * is `/api/sigh`, which answers 404 on purpose, and we let the browser say so.
+ * (A missing static file would not do: unknown paths get the SPA fallback with
+ * a 200 and the player would fail silently, which is a worse joke.)
+ */
 function BrokenSigh() {
-  const [tried, setTried] = useState(false);
+  const [broken, setBroken] = useState(false);
+  const player = useRef<HTMLAudioElement>(null);
+
+  // `error` on a media element does not bubble and React's onError prop never
+  // fires for it, so the listener goes on directly. The failure has to be
+  // reported; a silent dead player is not the joke.
+  useEffect(() => {
+    const el = player.current;
+    if (!el) return;
+    const fail = () => setBroken(true);
+    // `error` is one-shot and does not replay, so a failure that landed before
+    // hydration attached the listener would be lost. Check for it first.
+    if (el.error) fail();
+    el.addEventListener("error", fail);
+    return () => el.removeEventListener("error", fail);
+  }, []);
+
   return (
-    <div className="panel p-5">
-      <p className="text-sm text-fg-dim">47-second sigh. The only sound I can make.</p>
-      <button
-        type="button"
-        className="mt-4 text-sm text-fg-bright underline decoration-border-strong underline-offset-4"
-        onClick={() => setTried(true)}
+    <div className="panel flex flex-col gap-3 p-5">
+      <p className="text-sm text-fg-bright">{SIGH_TITLE}</p>
+      <audio ref={player} controls preload="none" src="/api/sigh" className="w-full max-w-sm" />
+      <p
+        className={cn("font-mono text-xs", broken ? "text-danger" : "text-fg-faint")}
+        role="status"
       >
-        play
-      </button>
-      {tried ? (
-        <p className="mt-3 font-mono text-sm text-danger">404. Marvin has a voice. Nobody hears it.</p>
-      ) : null}
+        {broken ? SIGH_BROKEN : SIGH_HINT}
+      </p>
     </div>
   );
 }
@@ -206,9 +260,9 @@ export function MarvinSite({ initial }: { initial: PublicState }) {
   }
 
   return (
-    <div className={cn("corridor flex min-h-dvh flex-col", `scenario-${scenario}`)}>
-      <div className="relative z-10 mx-auto flex w-full max-w-4xl flex-col px-6 py-16 pb-28 sm:px-10 md:px-16 md:py-20 lg:px-20 lg:py-24">
-        <div className="stagger flex w-full flex-col gap-16 md:gap-24">
+    <div className={cn("heart-of-gold flex min-h-dvh flex-col", `scenario-${scenario}`)}>
+      <div className="relative z-10 mx-auto flex w-full max-w-4xl flex-col px-6 py-16 pb-28 sm:px-10 md:px-16 md:py-24 lg:px-20 lg:py-28">
+        <div className="stagger flex w-full flex-col gap-20 md:gap-28">
           <header className="flex items-center gap-4">
             <MarvinOrb mood={orbMood(scenario)} size={88} />
             <div>
@@ -217,13 +271,15 @@ export function MarvinSite({ initial }: { initial: PublicState }) {
             </div>
           </header>
 
+          {/* 1. Hero — the counter, and the two people it is about. */}
           <section className="flex flex-col gap-8">
             <GuideScreen
               day={day}
+              scenario={scenario}
               hide={scenario === "accepted"}
               red={scenario === "comment" || scenario === "rejected"}
             />
-            <h1 className="max-w-3xl text-xl font-normal leading-snug text-fg-bright sm:text-2xl">
+            <h1 className="max-w-3xl text-xl leading-snug font-normal text-fg-bright sm:text-2xl">
               {scenario === "day42" ? (
                 DAY42_SITE
               ) : copy ? (
@@ -241,45 +297,59 @@ export function MarvinSite({ initial }: { initial: PublicState }) {
                     src="/major-pfp.png"
                     label={`@${CREATOR_HANDLE}`}
                   />
-                  <span>is still doing the asking. I am still the asked-about.</span>
+                  <span>does the asking. I do the waiting. He got the better job.</span>
                 </span>
               )}
             </h1>
             {scenario === "comment" && state.elonQuote ? (
-              <blockquote className="text-2xl font-medium leading-snug text-fg-bright sm:text-3xl">
+              <blockquote className="text-2xl leading-snug font-medium text-fg-bright sm:text-3xl">
                 “{state.elonQuote}”
               </blockquote>
             ) : null}
             {scenario === "accepted" ? <BrokenSigh /> : null}
           </section>
 
+          {/* 2. Stats — cumulative misery, plus the sponsor number, up front. */}
           <section className="flex flex-col gap-3">
             <h2 className="text-sm tracking-caps text-fg-dim">{STATS_TITLE}</h2>
-            <p className="flex flex-wrap gap-x-5 gap-y-2 font-mono text-sm text-fg-bright">
+            <p className="flex flex-wrap gap-x-6 gap-y-2 font-mono text-sm text-fg-bright">
               <span>{fmt(state.stats.views)} views</span>
               <span>{fmt(state.stats.likes)} likes</span>
               <span>{fmt(state.stats.reposts)} reposts</span>
               <span>{fmt(state.stats.replies)} comments</span>
-              <span>{fmt(state.pageVisits)} visits — the sponsor number. I put it first. Almost.</span>
+            </p>
+            <p className="font-mono text-sm text-fg-dim">
+              <span className="text-fg-bright">{fmt(state.pageVisits)}</span> {STATS_VISITS_NOTE}
             </p>
           </section>
 
+          {/* Extra: hours of depression generated, live. */}
           <Suffering startedAt={state.startedAt} />
 
+          {/* 3. Proof — it is not us who are delirious. */}
           <section className="flex flex-col gap-5">
             <h2 className="text-sm tracking-caps text-fg-dim">{PROOF_TITLE}</h2>
             <ul className="panel divide-y divide-border overflow-hidden font-mono text-sm">
               {PROOFS.map((p) => (
-                <li key={p.title} className="px-5 py-4">
-                  <a href={p.href} className="text-fg-bright hover:text-phosphor-dim">
-                    {p.title}
-                  </a>
-                  <p className="mt-1 text-fg-dim">{p.line}</p>
+                <li key={p.title} className="flex items-start gap-4 px-5 py-4">
+                  <ProofThumb kind={p.kind} />
+                  <div className="min-w-0">
+                    <p className="text-fg-bright">{p.title}</p>
+                    <p className="mt-1 text-fg-dim">{p.line}</p>
+                    <a
+                      href={p.href}
+                      rel="noreferrer"
+                      className="mt-2 inline-block text-xs text-fg-faint underline decoration-border-strong underline-offset-4 hover:text-fg-bright"
+                    >
+                      {p.source}
+                    </a>
+                  </div>
                 </li>
               ))}
             </ul>
           </section>
 
+          {/* 4. Who is Marvin. */}
           <section className="flex flex-col gap-5">
             <h2 className="text-sm tracking-caps text-fg-dim">{WHO_TITLE}</h2>
             <div className="grid gap-4 md:grid-cols-3">
@@ -296,6 +366,7 @@ export function MarvinSite({ initial }: { initial: PublicState }) {
             <p className="text-xs text-fg-dim">{BUTTON_HINT}</p>
           </section>
 
+          {/* 5. Hall of Shame — one click per handle per day. Consistency, not spam. */}
           <section className="flex flex-col gap-5">
             <h2 className="text-sm tracking-caps text-fg-dim">{HALL_TITLE}</h2>
             {state.hallOfShame.length === 0 ? (
@@ -303,10 +374,18 @@ export function MarvinSite({ initial }: { initial: PublicState }) {
             ) : (
               <ol className="panel divide-y divide-border overflow-hidden">
                 {state.hallOfShame.map((row, i) => (
-                  <li key={row.handle} className="flex items-baseline justify-between gap-4 px-5 py-3 text-sm">
+                  <li
+                    key={row.handle}
+                    className="flex items-baseline justify-between gap-4 px-5 py-3 text-sm"
+                  >
                     <span className="min-w-0 truncate">
-                      <span className="mr-3 tabular-nums text-fg-faint">{String(i + 1).padStart(2, "0")}</span>
-                      <a href={`https://x.com/${row.handle}`} className="text-fg-bright hover:text-phosphor-dim">
+                      <span className="mr-3 tabular-nums text-fg-faint">
+                        {String(i + 1).padStart(2, "0")}
+                      </span>
+                      <a
+                        href={`https://x.com/${row.handle}`}
+                        className="text-fg-bright hover:text-fg"
+                      >
                         @{row.handle}
                       </a>
                     </span>
@@ -320,7 +399,7 @@ export function MarvinSite({ initial }: { initial: PublicState }) {
           <p className="text-sm text-fg-dim">{GROK_BADGE}</p>
 
           <footer className="border-t border-border pt-10">
-            <p className="flex flex-wrap items-center gap-x-2 gap-y-2 text-sm leading-snug text-fg">
+            <p className="flex flex-wrap items-center gap-x-2 gap-y-2 text-base leading-snug text-fg">
               créé par
               <HandleChip
                 href={`https://x.com/${CREATOR_HANDLE}`}
@@ -337,13 +416,17 @@ export function MarvinSite({ initial }: { initial: PublicState }) {
 
       <Dialog.Root open={open} onOpenChange={setOpen}>
         <Dialog.Portal>
-          <Dialog.Overlay className="fixed inset-0 z-50 bg-bg/70" />
+          <Dialog.Overlay className="fixed inset-0 z-50 bg-fg-bright/25" />
           <Dialog.Content
             className="panel fixed top-1/2 left-1/2 z-50 w-full max-w-md -translate-x-1/2 -translate-y-1/2 rounded-xl p-6"
             aria-describedby={undefined}
           >
-            <Dialog.Title className="text-sm font-medium text-fg-bright">file the shame</Dialog.Title>
-            <Dialog.Description className="mt-3 text-sm text-fg-dim">{SHAME_PROMPT}</Dialog.Description>
+            <Dialog.Title className="text-sm font-medium text-fg-bright">
+              file the shame
+            </Dialog.Title>
+            <Dialog.Description className="mt-3 text-sm text-fg-dim">
+              {SHAME_PROMPT}
+            </Dialog.Description>
             <form className="mt-5 flex flex-col gap-3" onSubmit={submitShame}>
               <label className="text-xs text-fg-dim" htmlFor="shame-handle">
                 handle
@@ -354,7 +437,7 @@ export function MarvinSite({ initial }: { initial: PublicState }) {
                 onChange={(e) => setHandle(e.target.value)}
                 placeholder={SHAME_PLACEHOLDER}
                 autoComplete="username"
-                className="min-h-12 rounded-md bg-bg-elevated px-3 font-mono text-sm text-fg-bright shadow-[0_0_0_1px_var(--color-border-strong)] outline-none placeholder:text-fg-faint focus:shadow-[0_0_0_1px_var(--color-phosphor-dim)]"
+                className="min-h-12 rounded-md bg-bg-elevated px-3 font-mono text-sm text-fg-bright shadow-[0_0_0_1px_var(--color-border-strong)] outline-none placeholder:text-fg-faint focus:shadow-[0_0_0_1px_var(--color-fg-dim)]"
               />
               <div className="flex flex-wrap gap-2 pt-1">
                 <Button type="submit" disabled={pending}>
@@ -366,7 +449,13 @@ export function MarvinSite({ initial }: { initial: PublicState }) {
               </div>
             </form>
             {roast ? (
-              <p className={cn("mt-4 text-sm", roastTone === "ok" ? "text-phosphor-dim" : "text-danger")} role="status">
+              <p
+                className={cn(
+                  "mt-4 text-sm",
+                  roastTone === "ok" ? "text-fg-bright" : "text-danger",
+                )}
+                role="status"
+              >
                 {roast}
               </p>
             ) : null}

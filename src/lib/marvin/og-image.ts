@@ -1,7 +1,16 @@
 import { writeFile } from "node:fs/promises";
 import { Resvg } from "@resvg/resvg-js";
-import { ogJoke } from "./copy";
-import type { TweetStats } from "./types";
+import { ogJoke } from "./copy.ts";
+import {
+  EYE_RX,
+  EYE_RY,
+  GROK_EYES,
+  MARVIN_EYES,
+  ORB_CENTER,
+  ORB_INK,
+  ORB_RADIUS,
+} from "./orb-geometry.ts";
+import type { TweetStats } from "./types.ts";
 
 type OgInput = {
   day: number;
@@ -22,21 +31,28 @@ function xml(s: string): string {
   });
 }
 
+/**
+ * The frozen split mark, drawn from the same numbers as the component — Satori
+ * and resvg cannot animate, and neither can a tweet, so the card gets the
+ * static split. That was the joke anyway.
+ */
 function splitOrbSvg(): string {
+  const grok = GROK_EYES.map(
+    (e) =>
+      `<ellipse cx="${e.cx}" cy="${e.cy}" rx="${EYE_RX}" ry="${EYE_RY}" fill="${ORB_INK.grokFill}" stroke="${ORB_INK.grokStroke}" stroke-width="5"/>`,
+  ).join("");
+  const marvin = MARVIN_EYES.map(
+    (points) => `<polygon points="${points}" fill="${ORB_INK.marvin}"/>`,
+  ).join("");
+
   return `
-  <g transform="translate(64,56)">
-    <circle cx="70" cy="70" r="70" fill="#f3f3f1" stroke="#d2d2ce" stroke-width="2"/>
-    <clipPath id="ogLeft"><rect x="0" y="0" width="70" height="140"/></clipPath>
-    <clipPath id="ogRight"><rect x="70" y="0" width="70" height="140"/></clipPath>
-    <g clip-path="url(#ogLeft)">
-      <ellipse cx="48" cy="68" rx="14" ry="8" fill="#ffffff" stroke="#2c2c2a" stroke-width="4"/>
-      <ellipse cx="92" cy="68" rx="14" ry="8" fill="#ffffff" stroke="#2c2c2a" stroke-width="4"/>
-    </g>
-    <g clip-path="url(#ogRight)">
-      <polygon points="38,60 58,60 48,84" fill="#c23b3b"/>
-      <polygon points="82,64 102,64 92,90" fill="#c23b3b"/>
-    </g>
-    <line x1="70" y1="2" x2="70" y2="138" stroke="#d2d2ce" stroke-width="2"/>
+  <g transform="translate(74,58) scale(0.74)">
+    <clipPath id="ogLeft"><rect x="0" y="0" width="${ORB_CENTER}" height="200"/></clipPath>
+    <clipPath id="ogRight"><rect x="${ORB_CENTER}" y="0" width="${ORB_CENTER}" height="200"/></clipPath>
+    <circle cx="${ORB_CENTER}" cy="${ORB_CENTER}" r="${ORB_RADIUS}" fill="${ORB_INK.shellMid}" stroke="${ORB_INK.shellLine}" stroke-width="2"/>
+    <g clip-path="url(#ogLeft)">${grok}</g>
+    <g clip-path="url(#ogRight)">${marvin}</g>
+    <line x1="${ORB_CENTER}" y1="10" x2="${ORB_CENTER}" y2="190" stroke="${ORB_INK.shellLine}" stroke-width="2"/>
   </g>`;
 }
 
@@ -50,11 +66,11 @@ function renderOgSvg({ day, stats, joke }: OgInput): string {
 <svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
   <rect width="1200" height="630" fill="#ffffff"/>
   ${splitOrbSvg()}
-  <text x="1080" y="118" text-anchor="end" font-family="Nunito" font-weight="800" font-size="22" letter-spacing="6" fill="#8a8a86">DAY</text>
-  <text x="1080" y="210" text-anchor="end" font-family="Nunito" font-weight="800" font-size="92" fill="#2c2c2a">${xml(n)}</text>
-  <text x="80" y="360" font-family="Nunito" font-weight="800" font-size="36" fill="#2c2c2a">${xml(line)}</text>
-  <text x="80" y="420" font-family="Nunito" font-weight="400" font-size="26" fill="#8a8a86">asking @elonmusk for Marvin's voice</text>
-  <text x="80" y="560" font-family="Nunito" font-weight="400" font-size="20" fill="#b3b3ae">${xml(bar)}</text>
+  <text x="1120" y="122" text-anchor="end" font-family="Nunito" font-weight="800" font-size="22" letter-spacing="7" fill="#b9b9b4">DAY</text>
+  <text x="1120" y="214" text-anchor="end" font-family="Nunito" font-weight="800" font-size="96" fill="#1f1f1e">${xml(n)}</text>
+  <text x="80" y="362" font-family="Nunito" font-weight="800" font-size="38" fill="#1f1f1e">${xml(line)}</text>
+  <text x="80" y="422" font-family="Nunito" font-weight="400" font-size="26" fill="#8b8b87">asking @elonmusk for Marvin&#39;s voice</text>
+  <text x="80" y="556" font-family="Nunito" font-weight="400" font-size="20" fill="#b9b9b4">${xml(bar)}</text>
 </svg>`;
 }
 

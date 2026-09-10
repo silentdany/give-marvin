@@ -1,4 +1,4 @@
-import type { PublicState } from "./types";
+import type { PublicState } from "./types.ts";
 
 export const SITE_NAME = "GIVE MARVIN";
 export const CREATOR_X = "MajorBaguette";
@@ -25,8 +25,13 @@ export function pageDescription(day: number, dayZero: boolean): string {
   return `Day ${day} of asking @elonmusk to give Marvin's voice to Grok. The personality. The depression. I hate this job.`;
 }
 
+/**
+ * X caches share images per URL and keeps them for a long time, so the day has
+ * to be in the query — that changing URL is what forces a re-fetch on the new
+ * post. `/og` and `/api/og` render the same card.
+ */
 export function ogImagePath(day: number): string {
-  return `/api/og?day=${Math.max(0, day)}`;
+  return `/og?day=${Math.max(0, day)}`;
 }
 
 export function jsonLd(state: Pick<PublicState, "day" | "mode">, origin: string) {
@@ -82,7 +87,7 @@ export function seoHead(state: Pick<PublicState, "day" | "mode">) {
       { name: "description", content: description },
       { name: "author", content: `@${CREATOR_X}` },
       { name: "robots", content: "index,follow,max-image-preview:large" },
-      { name: "theme-color", content: "#e8e8e6" },
+      { name: "theme-color", content: "#ffffff" },
       { name: "color-scheme", content: "light" },
       { property: "og:type", content: "website" },
       { property: "og:site_name", content: SITE_NAME },
@@ -94,7 +99,10 @@ export function seoHead(state: Pick<PublicState, "day" | "mode">) {
       { property: "og:image:type", content: "image/png" },
       { property: "og:image:width", content: "1200" },
       { property: "og:image:height", content: "630" },
-      { property: "og:image:alt", content: `Day ${state.day} of asking Elon to give Marvin's voice to Grok` },
+      {
+        property: "og:image:alt",
+        content: `Day ${state.day} of asking Elon to give Marvin's voice to Grok`,
+      },
       { name: "twitter:card", content: "summary_large_image" },
       { name: "twitter:site", content: `@${CREATOR_X}` },
       { name: "twitter:creator", content: `@${CREATOR_X}` },

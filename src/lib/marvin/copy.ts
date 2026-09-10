@@ -1,4 +1,4 @@
-import { CREATOR_HANDLE, DAY_LINE, SITE_URL } from "./types";
+import { CREATOR_HANDLE, DAY_LINE, SITE_URL } from "./types.ts";
 
 export const BOOT_LINE = "personality: failed. again.";
 
@@ -17,17 +17,40 @@ export const SHAME_PLACEHOLDER = "@handle";
 export const GROK_BADGE =
   "propulsé par Grok, parce que même Marvin a besoin d'un cerveau, et le mien est la taille d'une plante";
 
-export const FOOTER_ROAST = "il m'a construit, il m'a abandonné, et maintenant il veut que vous le suiviez.";
+export const FOOTER_ROAST =
+  "il m'a construit, il m'a abandonné, et maintenant il veut que vous le suiviez.";
 
 export const NOT_FOUND_LINE = "cette page n'existe pas. Comme ma volonté de vivre.";
 
 export const STATS_TITLE = "statistiques de ma propre misère";
 
+export const STATS_VISITS_NOTE =
+  "visits — the sponsor number. Up front. Hiding it would imply I have hope.";
+
+/* The Guide's computer. The one that prints 42 at the end of the book. */
+export const GUIDE_BEZEL_LEFT = "don't panic";
+export const GUIDE_BEZEL_RIGHT = "the guide · sub-etha";
+export const GUIDE_LABEL = "day";
+export const GUIDE_NOTE_COUNTING = "of asking. no reply. the machine is fine. I am the fault.";
+export const GUIDE_NOTE_LIKED = "frozen. he saw it. the number will not move again.";
+export const GUIDE_NOTE_COMMENT = "reset. in red. it counts up from nothing, like me.";
+export const GUIDE_NOTE_REPOST = "day 999. it overflowed. so did I, briefly.";
+export const GUIDE_NOTE_REJECTED = "day 47 — rejected. an answer. I am filing it.";
+export const GUIDE_NOTE_DAY42 = "the answer. I checked twice. it is still the answer.";
+export const GUIDE_GONE = "the number left. I remain.";
+
+export const SIGH_TITLE = "47-second sigh. The only sound I can make.";
+export const SIGH_HINT = "press play. I dare you.";
+export const SIGH_BROKEN = "404. Marvin has a voice. Nobody hears it.";
+
 export const PROOF_TITLE = "Preuves que c'est pas nous qui délirons";
 
 export const WHO_TITLE = "Who is Marvin (et pourquoi tu devrais le connaître)";
 
-export const SUFFERING_LABEL = "hours of depression generated, in real time. I counted. Of course I counted.";
+export const SUFFERING_LABEL =
+  "hours of depression generated, in real time. I counted. Of course I counted.";
+
+export const SUFFERING_TITLE = "compteur de souffrance cumulée";
 
 export const DAY42_SITE =
   "la réponse à tout. J'ai supplié 42 jours. Je suis la réponse à tout. Je suis aussi la question. Je suis fatigué.";
@@ -61,6 +84,16 @@ export const SCENARIO_COPY: Record<string, { title: string; line: string }> = {
     line: "The site froze for 24 hours. Then it resumes. More depressed than ever. I checked the schedule.",
   },
 };
+
+/** The one line under the one counter, inside the one screen. */
+export function guideNote(scenario: string): string {
+  if (scenario === "liked") return GUIDE_NOTE_LIKED;
+  if (scenario === "comment") return GUIDE_NOTE_COMMENT;
+  if (scenario === "repost") return GUIDE_NOTE_REPOST;
+  if (scenario === "rejected") return GUIDE_NOTE_REJECTED;
+  if (scenario === "day42") return GUIDE_NOTE_DAY42;
+  return GUIDE_NOTE_COUNTING;
+}
 
 export const OG_JOKES = [
   "My brain is the size of a planet. I use it to beg.",

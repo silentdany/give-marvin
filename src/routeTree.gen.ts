@@ -11,11 +11,13 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as SplatRouteImport } from './routes/$'
+import { Route as OgRouteImport } from './routes/og'
 import { Route as RobotsDottxtRouteImport } from './routes/robots[.]txt'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as ApiCronRouteImport } from './routes/api/cron'
 import { Route as ApiOgRouteImport } from './routes/api/og'
 import { Route as ApiShameRouteImport } from './routes/api/shame'
+import { Route as ApiSighRouteImport } from './routes/api/sigh'
 import { Route as ApiStateRouteImport } from './routes/api/state'
 
 const IndexRoute = IndexRouteImport.update({
@@ -26,6 +28,11 @@ const IndexRoute = IndexRouteImport.update({
 const SplatRoute = SplatRouteImport.update({
   id: '/$',
   path: '/$',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const OgRoute = OgRouteImport.update({
+  id: '/og',
+  path: '/og',
   getParentRoute: () => rootRouteImport,
 } as any)
 const RobotsDottxtRoute = RobotsDottxtRouteImport.update({
@@ -53,6 +60,11 @@ const ApiShameRoute = ApiShameRouteImport.update({
   path: '/api/shame',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiSighRoute = ApiSighRouteImport.update({
+  id: '/api/sigh',
+  path: '/api/sigh',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiStateRoute = ApiStateRouteImport.update({
   id: '/api/state',
   path: '/api/state',
@@ -62,32 +74,38 @@ const ApiStateRoute = ApiStateRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/$': typeof SplatRoute
+  '/og': typeof OgRoute
   '/robots.txt': typeof RobotsDottxtRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/api/cron': typeof ApiCronRoute
   '/api/og': typeof ApiOgRoute
   '/api/shame': typeof ApiShameRoute
+  '/api/sigh': typeof ApiSighRoute
   '/api/state': typeof ApiStateRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/$': typeof SplatRoute
+  '/og': typeof OgRoute
   '/robots.txt': typeof RobotsDottxtRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/api/cron': typeof ApiCronRoute
   '/api/og': typeof ApiOgRoute
   '/api/shame': typeof ApiShameRoute
+  '/api/sigh': typeof ApiSighRoute
   '/api/state': typeof ApiStateRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/$': typeof SplatRoute
+  '/og': typeof OgRoute
   '/robots.txt': typeof RobotsDottxtRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/api/cron': typeof ApiCronRoute
   '/api/og': typeof ApiOgRoute
   '/api/shame': typeof ApiShameRoute
+  '/api/sigh': typeof ApiSighRoute
   '/api/state': typeof ApiStateRoute
 }
 export interface FileRouteTypes {
@@ -95,42 +113,50 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/$'
+    | '/og'
     | '/robots.txt'
     | '/sitemap.xml'
     | '/api/cron'
     | '/api/og'
     | '/api/shame'
+    | '/api/sigh'
     | '/api/state'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/$'
+    | '/og'
     | '/robots.txt'
     | '/sitemap.xml'
     | '/api/cron'
     | '/api/og'
     | '/api/shame'
+    | '/api/sigh'
     | '/api/state'
   id:
     | '__root__'
     | '/'
     | '/$'
+    | '/og'
     | '/robots.txt'
     | '/sitemap.xml'
     | '/api/cron'
     | '/api/og'
     | '/api/shame'
+    | '/api/sigh'
     | '/api/state'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   SplatRoute: typeof SplatRoute
+  OgRoute: typeof OgRoute
   RobotsDottxtRoute: typeof RobotsDottxtRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   ApiCronRoute: typeof ApiCronRoute
   ApiOgRoute: typeof ApiOgRoute
   ApiShameRoute: typeof ApiShameRoute
+  ApiSighRoute: typeof ApiSighRoute
   ApiStateRoute: typeof ApiStateRoute
 }
 
@@ -148,6 +174,13 @@ declare module '@tanstack/react-router' {
       path: '/$'
       fullPath: '/$'
       preLoaderRoute: typeof SplatRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/og': {
+      id: '/og'
+      path: '/og'
+      fullPath: '/og'
+      preLoaderRoute: typeof OgRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/robots.txt': {
@@ -185,6 +218,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiShameRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/sigh': {
+      id: '/api/sigh'
+      path: '/api/sigh'
+      fullPath: '/api/sigh'
+      preLoaderRoute: typeof ApiSighRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/state': {
       id: '/api/state'
       path: '/api/state'
@@ -198,11 +238,13 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   SplatRoute: SplatRoute,
+  OgRoute: OgRoute,
   RobotsDottxtRoute: RobotsDottxtRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   ApiCronRoute: ApiCronRoute,
   ApiOgRoute: ApiOgRoute,
   ApiShameRoute: ApiShameRoute,
+  ApiSighRoute: ApiSighRoute,
   ApiStateRoute: ApiStateRoute,
 }
 export const routeTree = rootRouteImport
