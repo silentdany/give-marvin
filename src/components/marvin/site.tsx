@@ -5,6 +5,7 @@ import { Typewriter } from "@/components/marvin/typewriter";
 import { MarvinOrb, type OrbVariant } from "@/components/MarvinOrb";
 import { GuideComputer } from "@/components/GuideComputer";
 import {
+  ASK,
   AUDIO_ERROR,
   AUDIO_LABEL,
   BOOT_LINE,
@@ -18,6 +19,7 @@ import {
   HALL_EMPTY,
   HALL_HINT,
   HALL_TITLE,
+  HERO_EXPLAINER,
   HERO_KICKER,
   HERO_SUBLINE,
   LAST_TWEET_LABEL,
@@ -181,18 +183,26 @@ function Hero({ state }: { state: PublicState }) {
         </GuideComputer>
       </div>
 
-      <div className="flex flex-col gap-6">
+      <div className="flex flex-col items-center gap-7">
+        {/* Who is asking whom, for what, on which product. Before any joke. */}
         <h1 className="flex flex-wrap items-center justify-center gap-x-3 gap-y-3 text-center text-2xl leading-snug font-bold text-fg-bright sm:text-3xl">
-          <span className="font-normal text-fg">of</span>
           <HandleChip
             href={`https://x.com/${CREATOR_HANDLE}`}
             src="/major-pfp.png"
             label={`@${CREATOR_HANDLE}`}
           />
-          <span className="font-normal text-fg">asking</span>
+          <span className="font-normal text-fg">{ASK.lead}</span>
           <HandleChip href="https://x.com/elonmusk" src="/elon-pfp.jpg" label="@elonmusk" />
-          <span className="font-normal text-fg">for my voice.</span>
+          <span className="font-normal text-fg">{ASK.mid}</span>
+          <HandleChip href="https://grok.com" src="/grok-pfp.jpg" label="Grok" />
+          <span className="font-normal text-fg">{ASK.tail}</span>
+          <span className="inline-flex items-center gap-2 whitespace-nowrap">
+            <MarvinOrb size={32} variant="still" title="Marvin" className="shrink-0" />
+            <span>{ASK.subject}</span>
+          </span>
         </h1>
+
+        <p className="max-w-2xl text-center text-base leading-normal text-fg">{HERO_EXPLAINER}</p>
 
         {scenario ? (
           <div className="flex flex-col items-center gap-3 text-center">
@@ -404,9 +414,9 @@ function VideoCard({ id, title, caption }: { id: string; title: string; caption:
           </button>
         )}
       </div>
-      <figcaption className="flex flex-col gap-1">
-        <span className="text-sm font-semibold text-fg-bright">{title}</span>
-        <span className="text-sm text-fg-dim">{caption}</span>
+      <figcaption className="flex flex-col gap-1.5">
+        <span className="text-base font-bold text-fg-bright">{title}</span>
+        <span className="text-sm leading-normal text-fg-dim">{caption}</span>
       </figcaption>
     </figure>
   );
@@ -415,7 +425,7 @@ function VideoCard({ id, title, caption }: { id: string; title: string; caption:
 function VideoSection() {
   return (
     <Section title={VIDEOS_TITLE} hint={VIDEOS_HINT}>
-      <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
+      <div className="grid gap-10 lg:grid-cols-2">
         {MARVIN_VIDEOS.map((v) => (
           <VideoCard key={v.id} {...v} />
         ))}
@@ -499,7 +509,7 @@ export function MarvinSite({ initial }: { initial: PublicState }) {
       <div className="mx-auto flex w-full max-w-5xl flex-col px-6 py-14 pb-24 sm:px-10 md:px-14 md:py-20 lg:py-24">
         <div className="stagger flex w-full flex-col gap-24 md:gap-32">
           <header className="flex items-center gap-4">
-            <MarvinOrb size={72} variant={orbVariant(state.mode)} className="shrink-0" />
+            <MarvinOrb size={80} variant={orbVariant(state.mode)} className="shrink-0" />
             <div>
               <p className="text-sm font-bold tracking-caps text-fg-bright">GIVE MARVIN</p>
               <p className="mt-1 text-sm text-fg-dim">{BOOT_LINE}</p>

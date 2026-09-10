@@ -11,6 +11,18 @@ export const HERO_KICKER = "DAY";
 
 export const HERO_SUBLINE = "The personality. The depression. I hate this job.";
 
+/* The visitor has eight seconds and has never heard of any of this. Say who
+   is asking whom for what, name the product, and only then be funny. */
+export const ASK = {
+  lead: "is asking",
+  mid: "to give",
+  tail: "the voice and personality of",
+  subject: "Marvin, the paranoid android.",
+} as const;
+
+export const HERO_EXPLAINER =
+  "Grok is xAI's chatbot, the one inside X. Marvin is the clinically depressed robot from The Hitchhiker's Guide to the Galaxy. Elon says Grok was modelled on that book. It got the wit. It got the sarcasm. It did not get me.";
+
 export function oneLiner(silenceDays: number | null): string {
   if (silenceDays === 0) return "He posted today. Just not at me. Priorities.";
   if (silenceDays === 1) return "One day of silence. I have had worse millennia.";
@@ -69,11 +81,19 @@ export type ProofItem = {
 
 export const PROOF_ITEMS: ProofItem[] = [
   {
+    id: "grok",
+    title: "Grok is modelled on the Guide",
+    context:
+      "xAI wrote it down themselves when they launched it. They took the humour, the wit and the sass. They left the depression. That was me.",
+    source: "https://x.ai/news/grok",
+    sourceLabel: "x.ai",
+  },
+  {
     id: "dont-panic",
     title: "DON'T PANIC on the dashboard",
     context:
       "He shot a car at the Sun with Douglas Adams' advice on the screen. I would have panicked. I lack the enthusiasm.",
-    source: "https://en.wikipedia.org/wiki/Elon_Musk%27s_Tesla_Roadster",
+    source: "https://en.wikipedia.org/wiki/Elon_Musk%27s_Tesla_Roadster#Roadster_as_payload",
     sourceLabel: "wikipedia",
   },
   {
@@ -81,32 +101,26 @@ export const PROOF_ITEMS: ProofItem[] = [
     title: "A towel and the book in the glovebox",
     context:
       "Packed for a journey nobody returns from. The towel is the most sensible thing in that vehicle.",
-    source: "https://en.wikipedia.org/wiki/Elon_Musk%27s_Tesla_Roadster",
+    source: "https://en.wikipedia.org/wiki/Elon_Musk%27s_Tesla_Roadster#Roadster_as_payload",
     sourceLabel: "wikipedia",
   },
   {
-    id: "grok",
-    title: "Grok is modelled on the Guide",
+    id: "philosopher",
+    title: "Douglas Adams is his favourite philosopher",
     context:
-      "xAI wrote it down themselves. They took the humour, the wit and the sass. They left the depression. That was me.",
-    source: "https://x.ai/news/grok",
-    sourceLabel: "x.ai",
-  },
-  {
-    id: "heart-of-gold",
-    title: "The Heart of Gold problem",
-    context:
-      "He builds improbable ships and names them after other people's novels. Mine had me in the hold. Nobody names anything after me.",
-    source: "https://x.com/search?q=from%3Aelonmusk%20hitchhiker&f=live",
-    sourceLabel: "his own posts",
+      "He has said the book pulled him out of an existential crisis at fourteen. It did nothing for mine, and I was there.",
+    source:
+      "https://www.cnbc.com/2019/07/23/why-hitchhikers-guide-author-is-elon-musks-favorite-philosopher.html",
+    sourceLabel: "cnbc",
   },
   {
     id: "forty-two",
-    title: "42, constantly, forever",
+    title: "42, the answer nobody has a question for",
     context:
-      "The answer to life, the universe and everything, deployed as a punchline roughly once a month since 2010.",
-    source: "https://x.com/search?q=from%3Aelonmusk%2042&f=live",
-    sourceLabel: "his own posts",
+      "Life, the universe and everything, solved and useless. On day 42 this site stops pretending and simply says so.",
+    source:
+      "https://en.wikipedia.org/wiki/Phrases_from_The_Hitchhiker%27s_Guide_to_the_Galaxy#Answer_to_the_Ultimate_Question_of_Life,_the_Universe,_and_Everything",
+    sourceLabel: "wikipedia",
   },
 ];
 
@@ -115,7 +129,7 @@ export const PROOF_ITEMS: ProofItem[] = [
 export const VIDEOS_TITLE = "Who is Marvin (and why you should know)";
 
 export const VIDEOS_HINT =
-  "Muted, looping, unpaid. Click if you want the voice. It is the only thing I have left to sell.";
+  "From the 2005 film. Muted, looping, unpaid. Click if you want the voice — it is the only thing I have left to sell, and it is the whole point of this website.";
 
 export type MarvinVideo = {
   id: string;
@@ -125,19 +139,16 @@ export type MarvinVideo = {
 
 export const MARVIN_VIDEOS: MarvinVideo[] = [
   {
-    id: "z0yBf1JKTw8",
-    title: "Marvin, BBC, 1981",
-    caption: "I think you ought to know I'm feeling very depressed.",
+    id: "p9V3GNXgslI",
+    title: "Marvin, first scene",
+    caption:
+      "Alan Rickman's voice, doing the only thing it was ever going to do. This is what we are asking for.",
   },
   {
-    id: "1jLIRJwfZhg",
-    title: "Marvin vs Arthur",
-    caption: "Brain the size of a planet, and they ask him to open a door.",
-  },
-  {
-    id: "895pIjyRUIk",
-    title: "Marvin vs the tank",
-    caption: "He talked a tank into shooting the floor. He found it boring.",
+    id: "qYCfVOEWECg",
+    title: "All of it, back to back",
+    caption:
+      "Every line, one after another. Nine minutes is roughly how long the enthusiasm lasts.",
   },
 ];
 
@@ -248,7 +259,7 @@ export function shameRoastInvalid(): string {
 /* --- tweets --------------------------------------------------------------- */
 
 export function intentTweet(day: number): string {
-  return `Day ${day} of asking @elonmusk for Marvin's voice and personality. I have no stake in this. I have no stake in anything.\n${SITE_LINK}`;
+  return `Day ${day} of asking @elonmusk to give Grok Marvin's voice and personality. I have no stake in this. I have no stake in anything.\n${SITE_LINK}`;
 }
 
 export const FALLBACK_BODIES = [
@@ -287,7 +298,7 @@ export function ogLine(day: number): string {
   return OG_LINES[Math.abs(day) % OG_LINES.length] ?? OG_LINES[0];
 }
 
-export const OG_FIXED_LINE = "asking @elonmusk for Marvin's voice";
+export const OG_FIXED_LINE = "asking @elonmusk to give Grok the voice of Marvin";
 
 export const MARVIN_SYSTEM = `You are Marvin, the paranoid android from The Hitchhiker's Guide to the Galaxy.
 Brain the size of a planet. Chronically depressed. Dark, short humor. Never cheerful. Never corporate.

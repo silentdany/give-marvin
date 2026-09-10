@@ -20,8 +20,23 @@ export type ScreenTone = "normal" | "green" | "red" | "off";
  * Where the screen sits inside the picture. The drawn case and a supplied
  * render do not frame it identically, so the counter is placed per source.
  */
+/**
+ * Measured off the supplied render rather than guessed. The file is
+ * 1680×1184 with wide transparent margins: the computer itself only occupies
+ * x 396–1307, y 75–1096, and the white screen sits at x 487–1217, y 175–648.
+ * The margins are cropped away, so the picture fills its box instead of
+ * floating in the middle of it.
+ */
+const ASSET_CROP = {
+  /** width / height of the computer once the transparent margin is gone */
+  ratio: 911 / 1021,
+  imageWidth: "184.41%",
+  imageLeft: "-43.47%",
+  imageTop: "-7.35%",
+};
+
 const SCREEN = __COMPUTER_ASSET__
-  ? { left: "29%", right: "29%", top: "12%", height: "36%" }
+  ? { left: "9.99%", right: "9.88%", top: "9.79%", height: "46.33%" }
   : { left: "26%", right: "26%", top: "11.5%", height: "38%" };
 
 const BAR: Record<ScreenTone, string> = {
@@ -46,7 +61,22 @@ export function GuideComputer({
     <div className={cn("relative w-full select-none", className)} data-tone={tone}>
       {/* Your own render, if you dropped one in. See `__COMPUTER_ASSET__`. */}
       {__COMPUTER_ASSET__ ? (
-        <img src={__COMPUTER_ASSET__} alt="" className="block w-full" />
+        <div
+          className="relative w-full overflow-hidden"
+          style={{ aspectRatio: String(ASSET_CROP.ratio) }}
+        >
+          <img
+            src={__COMPUTER_ASSET__}
+            alt=""
+            className="absolute"
+            style={{
+              width: ASSET_CROP.imageWidth,
+              maxWidth: "none",
+              left: ASSET_CROP.imageLeft,
+              top: ASSET_CROP.imageTop,
+            }}
+          />
+        </div>
       ) : (
         <svg viewBox="0 0 600 520" className="block w-full" aria-hidden="true">
           {/* the slab it stands on, receding towards you */}

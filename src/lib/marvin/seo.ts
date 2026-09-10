@@ -1,16 +1,21 @@
-import { ANSWER_DAY, type CampaignMode, type PublicState } from "./types";
+import { ANSWER_DAY, SITE_HOST, type CampaignMode, type PublicState } from "./types";
 
 export const SITE_NAME = "GIVE MARVIN";
 export const CREATOR_X = "MajorBaguette";
 export const DEFAULT_DESCRIPTION =
-  "Day n of asking @elonmusk for Marvin's voice and personality from The Hitchhiker's Guide to the Galaxy. The personality. The depression.";
+  "Day n of asking @elonmusk to give Grok the voice and personality of Marvin, the paranoid android from The Hitchhiker's Guide to the Galaxy.";
 
+/**
+ * The canonical origin is the domain we own, not whatever host served the
+ * request. `VERCEL_PROJECT_PRODUCTION_URL` is the *.vercel.app name, so
+ * trusting it would put vercel.app in every canonical tag, every OG image URL
+ * and the sitemap — and X would unfurl the wrong host on every post.
+ * `SITE_URL` still wins, for staging on some other domain.
+ */
 export function siteOrigin(): string {
   const explicit = process.env.SITE_URL?.trim().replace(/\/$/, "");
   if (explicit) return explicit.startsWith("http") ? explicit : `https://${explicit}`;
-  const prod = process.env.VERCEL_PROJECT_PRODUCTION_URL?.trim();
-  if (prod) return prod.startsWith("http") ? prod : `https://${prod}`;
-  return "https://give-marvin.vercel.app";
+  return `https://${SITE_HOST}`;
 }
 
 export function pageTitle(day: number, mode: CampaignMode): string {
@@ -20,7 +25,7 @@ export function pageTitle(day: number, mode: CampaignMode): string {
   if (mode === "liked") return `He saw me. It is worse than nothing. | ${SITE_NAME}`;
   if (mode === "commented") return `He spoke. Back to zero. | ${SITE_NAME}`;
   if (day === ANSWER_DAY) return `Day 42. The answer to everything. | ${SITE_NAME}`;
-  return `Day ${day} of asking @elonmusk for Marvin's voice | ${SITE_NAME}`;
+  return `Day ${day}: asking @elonmusk to give Grok the voice of Marvin | ${SITE_NAME}`;
 }
 
 export function pageDescription(day: number, mode: CampaignMode): string {
@@ -40,9 +45,9 @@ export function pageDescription(day: number, mode: CampaignMode): string {
     return "He spoke. The counter went back to zero, in red. The suffering continues, better presented.";
   }
   if (day === ANSWER_DAY) {
-    return "Day 42 of asking @elonmusk for Marvin's voice. The answer to everything. The answer to my suffering. Still 42.";
+    return "Day 42 of asking @elonmusk to give Grok the voice of Marvin. The answer to everything. The answer to my suffering. Still 42.";
   }
-  return `Day ${day} of asking @elonmusk for Marvin's voice and personality. The personality. The depression. I hate this job.`;
+  return `Day ${day} of asking @elonmusk to give Grok the voice and personality of Marvin, the paranoid android from The Hitchhiker's Guide to the Galaxy.`;
 }
 
 /**
@@ -118,7 +123,7 @@ export function seoHead(state: Pick<PublicState, "day" | "mode">) {
       { property: "og:image:height", content: "630" },
       {
         property: "og:image:alt",
-        content: `Day ${state.day} of asking @elonmusk for Marvin's voice`,
+        content: `Day ${state.day} of asking @elonmusk to give Grok the voice of Marvin`,
       },
       { name: "twitter:card", content: "summary_large_image" },
       { name: "twitter:site", content: `@${CREATOR_X}` },

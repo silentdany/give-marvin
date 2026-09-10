@@ -32,12 +32,31 @@ import { cn } from "@/lib/utils";
  * this renders — see `__ORB_ASSET__` in `vite.config.ts`.
  */
 
+/**
+ * The supplied render is 1408×1408 with roughly a tenth of transparent margin
+ * on every side — the ball only occupies x 153–1275, y 127–1277. Cropping it
+ * away is the difference between a logo and a small grey dot in a big box.
+ */
+const ASSET_CROP = {
+  width: "125.49%",
+  left: "-13.64%",
+  top: "-10.07%",
+};
+
 export type OrbVariant =
   | "spin" /* the normal state: turning, folding, tired */
   | "reverse" /* he reposted. it turns the wrong way. */
   | "whole" /* he accepted. nothing moves, the face is complete. */
   | "cracked" /* he said no. the crack is the exhibit. */
   | "still"; /* he liked it. nothing moves any more. */
+
+const ASSET_CROP_STYLE: React.CSSProperties = {
+  position: "absolute",
+  width: ASSET_CROP.width,
+  maxWidth: "none",
+  left: ASSET_CROP.left,
+  top: ASSET_CROP.top,
+};
 
 export function MarvinOrb({
   size = 96,
@@ -57,16 +76,36 @@ export function MarvinOrb({
 
   // Your own render, if you dropped one in. Nothing below it runs.
   if (__ORB_ASSET__) {
+    // A flat picture cannot turn its own eyes, so the sweep and the fold are
+    // gone. What it can do is lean, very slowly, the way a tired head does.
+    if (variant === "cracked") {
+      // He said no. The picture is torn down the middle and the halves part.
+      return (
+        <span
+          className={cn("orb orb-asset orb-torn", className)}
+          role="img"
+          aria-label={title}
+          style={{ width: size, height: size }}
+        >
+          <span className="orb-shard orb-shard-l">
+            <img src={__ORB_ASSET__} alt="" style={ASSET_CROP_STYLE} />
+          </span>
+          <span className="orb-shard orb-shard-r">
+            <img src={__ORB_ASSET__} alt="" style={ASSET_CROP_STYLE} />
+          </span>
+        </span>
+      );
+    }
     return (
-      <img
-        src={__ORB_ASSET__}
-        alt={title}
-        width={size}
-        height={size}
-        className={cn("orb orb-asset block", className)}
+      <span
+        className={cn("orb orb-asset", className)}
+        role="img"
+        aria-label={title}
         data-variant={variant}
         style={{ width: size, height: size }}
-      />
+      >
+        <img src={__ORB_ASSET__} alt="" style={ASSET_CROP_STYLE} />
+      </span>
     );
   }
 

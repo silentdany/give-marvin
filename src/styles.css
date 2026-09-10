@@ -173,6 +173,51 @@
   .orb[data-variant="cracked"] {
     animation: orb-shiver 6s ease-in-out infinite;
   }
+
+  /* ------------------------------------------------- orb, supplied render */
+
+  /*
+   * A picture of a sphere cannot rotate its face, so it leans instead: the
+   * slow list of a head that has given up. The repost gag still spins, since
+   * that one is a joke about spinning, not about being a ball.
+   */
+  .orb-asset {
+    position: relative;
+    display: inline-block;
+    overflow: hidden;
+  }
+
+  .orb-asset[data-variant="spin"] {
+    animation: orb-lean 16s ease-in-out infinite;
+  }
+
+  .orb-asset[data-variant="reverse"] {
+    animation: orb-backwards 9s linear infinite;
+  }
+
+  /* He said no. The picture is torn and the halves drift apart. */
+  .orb-torn {
+    position: relative;
+    display: inline-block;
+    overflow: hidden;
+  }
+
+  .orb-shard {
+    position: absolute;
+    inset: 0;
+    display: block;
+    overflow: hidden;
+  }
+
+  .orb-shard-l {
+    clip-path: polygon(0 0, 50% 0, 46% 34%, 53% 54%, 44% 76%, 50% 100%, 0 100%);
+    transform: translateX(-2.5%) rotate(-1.4deg);
+  }
+
+  .orb-shard-r {
+    clip-path: polygon(50% 0, 100% 0, 100% 100%, 50% 100%, 44% 76%, 53% 54%, 46% 34%);
+    transform: translateX(2.5%) rotate(1.4deg);
+  }
 }
 
 @keyframes orb-spin {
@@ -217,6 +262,25 @@
   }
 }
 
+@keyframes orb-lean {
+  0%,
+  100% {
+    transform: rotate(-2.5deg) translateY(0);
+  }
+  50% {
+    transform: rotate(2.5deg) translateY(-1.5%);
+  }
+}
+
+@keyframes orb-backwards {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(-360deg);
+  }
+}
+
 @keyframes orb-shiver {
   0%,
   92%,
@@ -257,6 +321,7 @@
   .stagger > *,
   .orb-face,
   .orb-lid,
+  .orb-asset,
   .orb[data-variant="cracked"] {
     animation: none;
   }

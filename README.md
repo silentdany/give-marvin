@@ -117,7 +117,19 @@ The button **Beg Elon, again** opens a pre-filled tweet intent on the visitor's 
 
 ## Domain
 
-`givemarvin.lol` — attach it in the Vercel project as the production domain.
+`givemarvin.lol`, registered at Namecheap, with its nameservers delegated to
+Vercel (`ns1.vercel-dns.com`, `ns2.vercel-dns.com`). Vercel is authoritative for
+the zone, so the apex, `www` and the certificate configure themselves once the
+domain is attached to the project — no A record to keep in sync.
+
+Attach it under **give-marvin → Settings → Domains**. Any future record for this
+domain (mail, verification TXT) is added on the Vercel side now, not at Namecheap.
+
+`siteOrigin()` is pinned to this host rather than reading
+`VERCEL_PROJECT_PRODUCTION_URL`, which is the `*.vercel.app` name: trusting that
+would put vercel.app in every canonical tag, every OG image URL and the sitemap,
+and X would unfurl the wrong host on every post. `SITE_URL` still overrides it
+for staging elsewhere.
 
 ## Personality notes, which are also the product spec
 
@@ -128,7 +140,25 @@ The button **Beg Elon, again** opens a pre-filled tweet intent on the visitor's 
 - English only, everywhere
 - **One** counter, and it lives inside the Guide's computer. Never a second one.
 
-## The logo, and swapping in your own art
+## Assets
+
+`public/marvin-orb.webp` and `public/guide-computer.webp` are the supplied
+renders and they win over the drawn versions — `vite.config.ts` checks for them
+at build time and injects `__ORB_ASSET__` / `__COMPUTER_ASSET__`. Both files
+carry wide transparent margins, so the components crop to the artwork:
+
+- the orb occupies x 153–1275, y 127–1277 of 1408×1408
+- the computer occupies x 396–1307, y 75–1096 of 1680×1184, and its screen
+  sits at x 487–1217, y 175–648
+
+Those numbers are measured off the files, not guessed. Replace a file with one
+framed differently and the crop constants at the top of `MarvinOrb.tsx` and
+`GuideComputer.tsx` need re-measuring with it.
+
+A supplied orb cannot rotate its own eyes, so it leans slowly instead of
+sweeping and folding. The drawn fallback below still does the full turn.
+
+## The drawn fallback, and swapping in your own art
 
 `src/components/MarvinOrb.tsx` — one matte sphere with a thin slit carved across it and
 two mint triangles hanging off that slit, the left one large, the right one small and
