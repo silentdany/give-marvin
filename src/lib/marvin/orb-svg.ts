@@ -1,77 +1,74 @@
 /**
- * The logo: one orb, split down the middle.
- * Left half is the ordinary bot — a calm white oval eye.
- * Right half is Marvin — a drooping green triangle under a brow slit.
- * Almost no difference. That is the joke.
+ * The logo, as a string of SVG.
  *
- * Pure string SVG so the OG renderer (resvg, no DOM) and the favicon can
- * share the exact same geometry as the animated React component.
+ * One matte sphere. One thin slit carved across it, rising to the right.
+ * Two mint triangles hanging off that slit — the left one large, the right
+ * one small and squeezed by the curve of the ball. No cartoon eyes, no
+ * outlines: the light comes through the cuts, that is all.
+ *
+ * resvg (the OG card) and the favicon have no DOM and cannot animate, so they
+ * take this frozen version. `MarvinOrb.tsx` mirrors the same numbers in JSX
+ * and animates them. Change one, change the other.
  */
 
-export const ORB_SHELL = "#f0f0ed";
-export const ORB_RING = "rgb(40 40 38 / 0.10)";
-export const ORB_EYE_CALM = "#ffffff";
-export const ORB_EYE_MARVIN = "#2fd39b";
-export const ORB_BROW = "#2c2c2a";
+export const ORB_INK = "#2a2a28";
+export const ORB_MINT = "#2fd39b";
+export const ORB_MINT_DEEP = "#22c38d";
+export const ORB_BEVEL = "#ffffff";
 
-export type OrbHalf = "calm" | "marvin";
+/* The face, in a 200×200 box with the sphere centred at (100,100), r = 88.
+   The slit is one straight line; both triangles hang from points on it. */
+export const SLIT_A = { x: 36, y: 112 };
+export const SLIT_B = { x: 176, y: 76 };
+export const EYE_L = { a: { x: 46, y: 109.4 }, b: { x: 104, y: 94.5 }, apex: { x: 86, y: 137 } };
+export const EYE_R = { a: { x: 140, y: 85.3 }, b: { x: 170, y: 77.6 }, apex: { x: 160, y: 105 } };
 
-/** A calm bot eye: an upright rounded oval. Nothing behind it. */
-function calmEye(cx: number, cy: number, r: number): string {
-  return `<ellipse cx="${cx}" cy="${cy}" rx="${r * 0.145}" ry="${r * 0.25}"
-    fill="${ORB_EYE_CALM}" stroke="${ORB_BROW}" stroke-opacity="0.5" stroke-width="${r * 0.045}"/>`;
-}
+type Eye = typeof EYE_L;
+
+const tri = (e: Eye) => `M ${e.a.x} ${e.a.y} L ${e.b.x} ${e.b.y} L ${e.apex.x} ${e.apex.y} Z`;
+
+export const EYE_L_PATH = tri(EYE_L);
+export const EYE_R_PATH = tri(EYE_R);
+export const SLIT_PATH = `M ${SLIT_A.x} ${SLIT_A.y} L ${SLIT_B.x} ${SLIT_B.y}`;
 
 /**
- * A Marvin eye: a brow slit, and a triangle hanging off it.
- * `droop` slides the outer corner down — that is the entire personality.
+ * `uid` keeps the gradient ids unique when several orbs share a document.
+ * `eyes: false` draws the bare slit — the ordinary bot, before it knows.
  */
-function marvinEye(cx: number, cy: number, r: number, droop: number, flip: boolean): string {
-  const dir = flip ? -1 : 1;
-  const browX1 = cx - dir * r * 0.22;
-  const browX2 = cx + dir * r * 0.22;
-  const browY1 = cy - droop * r;
-  const browY2 = cy + droop * r;
-  const apexX = cx + dir * r * 0.025;
-  const apexY = (browY1 + browY2) / 2 + r * 0.36;
+export function orbSvg(
+  x: number,
+  y: number,
+  size: number,
+  { uid = "orb", eyes = true }: { uid?: string; eyes?: boolean } = {},
+): string {
+  const k = size / 200;
+  const cuts = eyes
+    ? `
+  <path d="${EYE_L_PATH}" fill="none" stroke="${ORB_BEVEL}" stroke-width="6" stroke-linejoin="round"/>
+  <path d="${EYE_R_PATH}" fill="none" stroke="${ORB_BEVEL}" stroke-width="5" stroke-linejoin="round"/>
+  <path d="${EYE_L_PATH}" fill="url(#${uid}-eye)"/>
+  <path d="${EYE_R_PATH}" fill="url(#${uid}-eye)"/>`
+    : "";
 
-  return `<g>
-    <path d="M ${browX1} ${browY1} L ${browX2} ${browY2} L ${apexX} ${apexY} Z"
-      fill="${ORB_EYE_MARVIN}"/>
-    <path d="M ${browX1} ${browY1} L ${browX2} ${browY2}"
-      stroke="${ORB_BROW}" stroke-width="${r * 0.062}" stroke-linecap="round" fill="none"/>
-  </g>`;
+  return `<g transform="translate(${x} ${y}) scale(${k})">
+  <defs>
+    <radialGradient id="${uid}-shell" cx="34%" cy="28%" r="82%">
+      <stop offset="0%" stop-color="#ffffff"/>
+      <stop offset="52%" stop-color="#f1f1ee"/>
+      <stop offset="100%" stop-color="#d8d8d2"/>
+    </radialGradient>
+    <linearGradient id="${uid}-eye" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="${ORB_MINT}"/>
+      <stop offset="100%" stop-color="${ORB_MINT_DEEP}"/>
+    </linearGradient>
+  </defs>
+  <circle cx="100" cy="100" r="88" fill="url(#${uid}-shell)"/>${cuts}
+  <path d="${SLIT_PATH}" stroke="${ORB_INK}" stroke-width="4.2" stroke-linecap="round" fill="none"/>
+</g>`;
 }
 
-/**
- * The frozen split orb. `x`,`y` is the top-left of a `size`×`size` box.
- * Satori and resvg cannot animate; this is the still both of them use.
- */
-export function splitOrbSvg(x: number, y: number, size: number): string {
-  const r = size / 2;
-  const cx = x + r;
-  const cy = y + r;
-  const shell = r * 0.96;
+/** The frozen orb the favicon and the OG card share. */
+export const splitOrbSvg = (x: number, y: number, size: number, uid?: string) =>
+  orbSvg(x, y, size, { uid });
 
-  return `<g>
-    <circle cx="${cx}" cy="${cy}" r="${shell}" fill="${ORB_SHELL}"
-      stroke="${ORB_RING}" stroke-width="${size * 0.012}"/>
-    ${calmEye(cx - r * 0.35, cy + r * 0.055, r)}
-    ${marvinEye(cx + r * 0.35, cy, r, 0.085, false)}
-  </g>`;
-}
-
-/** Both eyes Marvin. Used when the joke stops being a joke. */
-export function marvinOrbSvg(x: number, y: number, size: number): string {
-  const r = size / 2;
-  const cx = x + r;
-  const cy = y + r;
-  const shell = r * 0.96;
-
-  return `<g>
-    <circle cx="${cx}" cy="${cy}" r="${shell}" fill="${ORB_SHELL}"
-      stroke="${ORB_RING}" stroke-width="${size * 0.012}"/>
-    ${marvinEye(cx - r * 0.35, cy, r, 0.085, true)}
-    ${marvinEye(cx + r * 0.35, cy, r, 0.085, false)}
-  </g>`;
-}
+export const marvinOrbSvg = splitOrbSvg;

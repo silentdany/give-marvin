@@ -128,13 +128,28 @@ The button **Beg Elon, again** opens a pre-filled tweet intent on the visitor's 
 - English only, everywhere
 - **One** counter, and it lives inside the Guide's computer. Never a second one.
 
-## The logo
+## The logo, and swapping in your own art
 
-`src/components/MarvinOrb.tsx` — one orb split down the middle: the left half is an
-ordinary bot (calm white oval eye), the right half is Marvin (drooping green triangle
-under a brow slit). Almost no difference. That is the joke.
+`src/components/MarvinOrb.tsx` — one matte sphere with a thin slit carved across it and
+two mint triangles hanging off that slit, the left one large, the right one small and
+squeezed by the curve of the ball. It turns slowly, and as the face comes back round the
+triangles retract into the bare slit — an ordinary bot, before it knows — then hang open
+again. CSS keyframes only: no library, no Lottie, no runtime cost. The frozen geometry
+lives in `src/lib/marvin/orb-svg.ts`, shared by the favicon and the OG card, neither of
+which can animate.
 
-It rotates slowly and, coming back round, morphs the whole face into Marvin, then back.
-CSS keyframes only — no library, no Lottie, no runtime cost. The frozen geometry lives in
-`src/lib/marvin/orb-svg.ts` and is shared by the favicon and the OG card, neither of which
-can animate.
+**To use your own renders instead, drop the files in `public/` and rebuild:**
+
+| File                         | Replaces                                         |
+| ---------------------------- | ------------------------------------------------ |
+| `public/marvin-orb.webp`     | the drawn orb, everywhere it appears on the site |
+| `public/guide-computer.webp` | the drawn computer behind the counter            |
+
+No code change. `vite.config.ts` checks for them at build time and injects
+`__ORB_ASSET__` / `__COMPUTER_ASSET__`; the components use the file when it is there and
+fall back to their own drawing when it is not. A supplied orb is shown as-is — a flat
+image cannot rotate its own eyes. If the counter sits wrong inside a supplied computer,
+nudge `SCREEN` at the top of `src/components/GuideComputer.tsx`.
+
+The favicon and the OG card are generated from the drawn geometry either way, since
+Satori and resvg cannot read a webp off the filesystem at render time.

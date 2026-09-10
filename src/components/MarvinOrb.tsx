@@ -1,66 +1,30 @@
 "use client";
 
+import { EYE_L_PATH, EYE_R_PATH, ORB_BEVEL, ORB_INK, SLIT_PATH } from "@/lib/marvin/orb-svg";
 import { cn } from "@/lib/utils";
 
 /**
- * The logo. One orb, split down the middle: the left half is an ordinary bot
- * (calm white oval eye), the right half is Marvin (drooping green triangle
- * under a brow slit). Almost no difference. That is the joke.
+ * The logo.
  *
- * It rotates slowly and, as it comes back round, morphs the whole face into
- * Marvin — then back. CSS keyframes only: no library, no Lottie, no runtime.
- * The frozen split version lives in `@/lib/marvin/orb-svg` and is what the
- * favicon and the OG card use, since neither of those can animate.
+ * One matte sphere with a thin slit carved across it and two mint triangles
+ * hanging off that slit — the left one large, the right one small and squeezed
+ * by the curve of the ball. It turns slowly; as the face comes back round the
+ * triangles retract into the bare slit (an ordinary bot, before it knows) and
+ * then hang open again. CSS keyframes only: no library, no Lottie, no runtime.
+ *
+ * If `public/marvin-orb.webp` exists, that file is used instead and this
+ * drawing never renders — see `__ORB_ASSET__` in `vite.config.ts`. The frozen
+ * geometry for the favicon and the OG card lives in `@/lib/marvin/orb-svg`.
  */
 
 export type OrbVariant =
-  | "spin" /* the normal state: rotating, morphing, tired */
+  | "spin" /* the normal state: turning, morphing, tired */
   | "reverse" /* he reposted. it turns the wrong way. */
-  | "whole" /* he accepted. no split left. */
+  | "whole" /* he accepted. nothing moves, the face is complete. */
   | "cracked" /* he said no. the crack is the exhibit. */
   | "still"; /* he liked it. nothing moves any more. */
 
-const SHELL = "#f0f0ed";
-const RING = "rgb(40 40 38 / 0.10)";
-const EYE_CALM = "#ffffff";
-const EYE_MARVIN = "var(--color-phosphor, #2fd39b)";
-const BROW = "#2c2c2a";
-
-function CalmEye({ cx, cy }: { cx: number; cy: number }) {
-  return (
-    <ellipse
-      cx={cx}
-      cy={cy}
-      rx={14.5}
-      ry={25}
-      fill={EYE_CALM}
-      stroke={BROW}
-      strokeOpacity={0.5}
-      strokeWidth={4.5}
-    />
-  );
-}
-
-/** Brow slit plus the triangle hanging off it. The outer corner sits lower. */
-function MarvinEye({ cx, cy, flip }: { cx: number; cy: number; flip?: boolean }) {
-  const dir = flip ? -1 : 1;
-  const x1 = cx - dir * 22;
-  const y1 = cy - 8.5;
-  const x2 = cx + dir * 22;
-  const y2 = cy + 8.5;
-  return (
-    <g>
-      <path d={`M ${x1} ${y1} L ${x2} ${y2} L ${cx + dir * 2.5} ${cy + 36} Z`} fill={EYE_MARVIN} />
-      <path
-        d={`M ${x1} ${y1} L ${x2} ${y2}`}
-        stroke={BROW}
-        strokeWidth={6.2}
-        strokeLinecap="round"
-        fill="none"
-      />
-    </g>
-  );
-}
+let seq = 0;
 
 export function MarvinOrb({
   size = 96,
@@ -75,6 +39,23 @@ export function MarvinOrb({
 }) {
   const animated = variant === "spin" || variant === "reverse";
 
+  // Your own render, if you dropped one in. Nothing below it runs.
+  if (__ORB_ASSET__) {
+    return (
+      <img
+        src={__ORB_ASSET__}
+        alt={title}
+        width={size}
+        height={size}
+        className={cn("orb orb-asset block", className)}
+        data-variant={variant}
+        style={{ width: size, height: size }}
+      />
+    );
+  }
+
+  const uid = `orb${(seq = (seq + 1) % 1000)}`;
+
   return (
     <svg
       viewBox="0 0 200 200"
@@ -86,41 +67,56 @@ export function MarvinOrb({
       data-variant={variant}
     >
       <title>{title}</title>
+      <defs>
+        <radialGradient id={`${uid}-shell`} cx="34%" cy="28%" r="82%">
+          <stop offset="0%" stopColor="#ffffff" />
+          <stop offset="52%" stopColor="#f1f1ee" />
+          <stop offset="100%" stopColor="#d8d8d2" />
+        </radialGradient>
+        <linearGradient id={`${uid}-eye`} x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor="var(--color-phosphor, #2fd39b)" />
+          <stop offset="100%" stopColor="#22c38d" />
+        </linearGradient>
+      </defs>
 
-      <circle cx={100} cy={100} r={94} fill={SHELL} stroke={RING} strokeWidth={2.4} />
+      <circle cx={100} cy={100} r={88} fill={`url(#${uid}-shell)`} />
 
       {variant === "cracked" ? (
-        <>
+        <path
+          d="M 100 13 L 91 62 L 109 98 L 87 142 L 100 187"
+          stroke={ORB_INK}
+          strokeWidth={3}
+          strokeOpacity={0.5}
+          fill="none"
+          strokeLinejoin="round"
+        />
+      ) : null}
+
+      <g className={animated ? "orb-face" : undefined}>
+        {/* the two cuts, and the light coming through them */}
+        <g className={animated ? "orb-lid orb-lid-l" : undefined}>
           <path
-            d="M 100 6 L 92 58 L 108 96 L 88 138 L 100 194"
-            stroke={BROW}
-            strokeWidth={3}
-            strokeOpacity={0.55}
+            d={EYE_L_PATH}
             fill="none"
+            stroke={ORB_BEVEL}
+            strokeWidth={6}
             strokeLinejoin="round"
           />
-          <MarvinEye cx={65} cy={104} flip />
-          <MarvinEye cx={135} cy={104} />
-        </>
-      ) : variant === "whole" ? (
-        <>
-          <MarvinEye cx={65} cy={100} flip />
-          <MarvinEye cx={135} cy={100} />
-        </>
-      ) : (
-        <g className={animated ? "orb-face" : undefined}>
-          {/* Left half: an ordinary bot. Fades out when the whole face goes Marvin. */}
-          <g className={animated ? "orb-calm" : undefined}>
-            <CalmEye cx={65} cy={105.5} />
-          </g>
-          {/* Right half: Marvin, always. The split is the whole gag. */}
-          <MarvinEye cx={135} cy={100} />
-          {/* The left eye going Marvin too: the morph, and the way back. */}
-          <g className={animated ? "orb-full" : "orb-hidden"}>
-            <MarvinEye cx={65} cy={100} flip />
-          </g>
+          <path d={EYE_L_PATH} fill={`url(#${uid}-eye)`} />
         </g>
-      )}
+        <g className={animated ? "orb-lid orb-lid-r" : undefined}>
+          <path
+            d={EYE_R_PATH}
+            fill="none"
+            stroke={ORB_BEVEL}
+            strokeWidth={5}
+            strokeLinejoin="round"
+          />
+          <path d={EYE_R_PATH} fill={`url(#${uid}-eye)`} />
+        </g>
+        {/* the slit itself, always. it is the only thing he keeps. */}
+        <path d={SLIT_PATH} stroke={ORB_INK} strokeWidth={4.2} strokeLinecap="round" fill="none" />
+      </g>
     </svg>
   );
 }

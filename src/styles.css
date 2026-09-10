@@ -149,26 +149,24 @@
   }
 
   /*
-   * Twice as long as the spin, so the face becomes fully Marvin on the way
-   * round, holds, then goes back to the ordinary bot. Infinite. Like this.
+   * Twice as long as the spin: the triangles retract into the bare slit — an
+   * ordinary bot, before it knows — and hang open again on the way back.
+   * Each one folds towards its own top edge, which is where the cut is.
    */
-  .orb-calm {
-    animation: orb-fade-out 36s ease-in-out infinite;
-  }
-
-  .orb-full {
-    opacity: 0;
-    transform-origin: 65px 100px;
+  .orb-lid {
     animation: orb-droop 36s ease-in-out infinite;
   }
 
-  .orb-hidden {
-    display: none;
+  .orb-lid-l {
+    transform-origin: 75px 102px;
+  }
+
+  .orb-lid-r {
+    transform-origin: 155px 81.5px;
   }
 
   .orb[data-variant="reverse"] .orb-face,
-  .orb[data-variant="reverse"] .orb-calm,
-  .orb[data-variant="reverse"] .orb-full {
+  .orb[data-variant="reverse"] .orb-lid {
     animation-direction: reverse;
   }
 
@@ -204,36 +202,18 @@
   }
 }
 
-@keyframes orb-fade-out {
-  0%,
-  16% {
-    opacity: 1;
-  }
-  40%,
-  60% {
-    opacity: 0;
-  }
-  84%,
-  100% {
-    opacity: 1;
-  }
-}
-
 @keyframes orb-droop {
   0%,
   16% {
-    opacity: 0;
-    transform: translateY(-7px) scaleY(0.35);
+    transform: scaleY(1);
   }
   40%,
   60% {
-    opacity: 1;
-    transform: translateY(0) scaleY(1);
+    transform: scaleY(0.02);
   }
   84%,
   100% {
-    opacity: 0;
-    transform: translateY(-7px) scaleY(0.35);
+    transform: scaleY(1);
   }
 }
 
@@ -276,13 +256,9 @@
 @media (prefers-reduced-motion: reduce) {
   .stagger > *,
   .orb-face,
-  .orb-calm,
-  .orb-full,
+  .orb-lid,
   .orb[data-variant="cracked"] {
     animation: none;
-  }
-  .orb-full {
-    opacity: 0;
   }
   .cursor-block {
     animation: none;

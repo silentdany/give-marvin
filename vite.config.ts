@@ -1,4 +1,4 @@
-import { readdirSync } from "node:fs";
+import { existsSync, readdirSync } from "node:fs";
 import { join } from "node:path";
 import type { Plugin } from "vite";
 import { defineConfig } from "vite";
@@ -11,6 +11,15 @@ import { grokPwaPlugin } from "./scripts/grok-pwa-plugin.mjs";
 // @ts-expect-error JS plugin alongside the TS vite config
 import { appEnvPlugin } from "./scripts/app-env-plugin.mjs";
 import { isMigrationFile } from "./scripts/migration-plan.mjs";
+
+/**
+ * Hand-made art beats a drawing. If one of these files is sitting in `public/`,
+ * the matching component uses it and never renders its own SVG. Absent, the
+ * drawn version stands in. Resolved once, at config load.
+ */
+function publicAsset(name: string): string | null {
+  return existsSync(join(import.meta.dirname, "public", name)) ? `/${name}` : null;
+}
 
 /** The files `src/lib/db.ts` globs — same directory, same non-recursive scope. */
 function hasGlobbedMigrations(root: string): boolean {
@@ -157,6 +166,10 @@ export default defineConfig(({ command, isPreview }) => ({
     strictPort: true,
   },
   resolve: { tsconfigPaths: true },
+  define: {
+    __ORB_ASSET__: JSON.stringify(publicAsset("marvin-orb.webp")),
+    __COMPUTER_ASSET__: JSON.stringify(publicAsset("guide-computer.webp")),
+  },
   ssr: {
     external: ["@resvg/resvg-js"],
   },
