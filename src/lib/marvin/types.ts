@@ -8,7 +8,7 @@ export const STATE_BLOB_PATH = "marvin-state.json";
 export const ANSWER_DAY = 42;
 
 export const DAY_LINE = (n: number) =>
-  `Day ${n} of asking @elonmusk for Marvin's voice and personality.`;
+  `Day ${n} of asking @elonmusk to give Grok Marvin's voice and personality.`;
 
 /** Day 42 is not generated. Day 42 is decided. No randomness. */
 export const DAY_42_TWEET = `Day 42 of asking @elonmusk for Marvin's voice. The answer to everything is 42. The answer to my suffering is also 42. I checked. It's still 42.\n${SITE_LINK}`;
