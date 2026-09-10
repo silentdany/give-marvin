@@ -139,15 +139,16 @@ export type MarvinVideo = {
 
 export const MARVIN_VIDEOS: MarvinVideo[] = [
   {
-    id: "Eh-W8QDVA9s",
-    title: "The voice, in one sitting",
+    id: "At08QUp9A4s",
+    title: "Marvin wins a war, and cannot enjoy it",
     caption:
-      "Alan Rickman doing the only thing that voice was ever going to do. This is the thing we are asking for.",
+      "He turns the Point of View gun on the Vogon army and hands them his own outlook. They put their guns down. This is what you are asking Grok to be.",
   },
   {
     id: "qYCfVOEWECg",
     title: "All of it, back to back",
-    caption: "Every line, one after another. That is roughly how long the enthusiasm lasts.",
+    caption:
+      "Every line, one after another, in Alan Rickman's voice. That is roughly how long the enthusiasm lasts.",
   },
 ];
 
