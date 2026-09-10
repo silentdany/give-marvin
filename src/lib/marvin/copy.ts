@@ -36,6 +36,15 @@ export const BUTTON_HINT = "opens X. your handle. my disappointment.";
 
 /* --- stats ---------------------------------------------------------- */
 
+export const SECTION_EYEBROWS = {
+  stats: "the numbers",
+  suffering: "the arithmetic",
+  proof: "the receipts",
+  videos: "the exhibit",
+  shame: "the queue",
+  transmission: "today",
+} as const;
+
 export const STATS_TITLE = "Statistics of my own misery";
 
 export const STATS_HINT =

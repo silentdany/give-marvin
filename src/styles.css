@@ -103,6 +103,74 @@
     background: color-mix(in oklab, var(--color-phosphor) 4%, var(--color-bg));
   }
 
+  /*
+   * Surfaces. On a white page a grey fill barely registers — it reads as an
+   * unstyled div. A hairline ring plus a very soft shadow reads as a card and
+   * keeps the page white, which is the whole brief.
+   */
+  .card {
+    background: #ffffff;
+    border-radius: var(--radius-xl);
+    box-shadow:
+      0 0 0 1px var(--color-border),
+      0 1px 2px rgb(40 40 38 / 0.03),
+      0 8px 24px -16px rgb(40 40 38 / 0.12);
+  }
+
+  .card-hover {
+    transition:
+      box-shadow var(--motion-fast) var(--ease-out),
+      transform var(--motion-fast) var(--ease-out);
+  }
+
+  .card-hover:hover {
+    transform: translateY(-2px);
+    box-shadow:
+      0 0 0 1px var(--color-border-strong),
+      0 2px 4px rgb(40 40 38 / 0.04),
+      0 18px 40px -24px rgb(40 40 38 / 0.22);
+  }
+
+  /*
+   * One tinted band, to break a very long white scroll exactly once. It bleeds
+   * past the text column with negative margins only — a -100vw pseudo-element
+   * would widen the document itself and give the whole page a horizontal
+   * scrollbar.
+   */
+  .band {
+    background: var(--color-bg-panel);
+  }
+
+  /* The eyebrow above every section heading: mono, tracked out, mint. */
+  .eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6em;
+    font-family: var(--font-mono);
+    font-size: 0.6875rem;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--color-phosphor-dim);
+  }
+
+  .eyebrow::before {
+    content: "";
+    width: 0.5rem;
+    height: 0.5rem;
+    border-radius: 9999px;
+    background: var(--color-phosphor);
+  }
+
+  .rule {
+    height: 1px;
+    background: linear-gradient(
+      to right,
+      var(--color-border-strong),
+      var(--color-border) 40%,
+      transparent
+    );
+  }
+
   .cursor-block {
     display: inline-block;
     width: 0.6ch;

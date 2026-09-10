@@ -27,6 +27,7 @@ import {
   PROOF_HINT,
   PROOF_ITEMS,
   SCENARIOS,
+  SECTION_EYEBROWS,
   SHAME_PLACEHOLDER,
   SHAME_PROMPT,
   STATS_FOOTNOTES,
@@ -68,21 +69,27 @@ function compact(n: number): string {
 }
 
 function Section({
+  eyebrow,
   title,
   hint,
   children,
   className,
 }: {
+  eyebrow?: string;
   title: string;
   hint?: string;
   children: React.ReactNode;
   className?: string;
 }) {
   return (
-    <section className={cn("flex flex-col gap-7", className)}>
-      <header className="flex flex-col gap-2">
-        <h2 className="text-lg font-bold text-fg-bright sm:text-xl">{title}</h2>
-        {hint ? <p className="max-w-2xl text-sm text-fg-dim">{hint}</p> : null}
+    <section className={cn("flex flex-col gap-8", className)}>
+      <header className="flex flex-col gap-3">
+        {eyebrow ? <span className="eyebrow">{eyebrow}</span> : null}
+        <h2 className="max-w-3xl text-2xl leading-tight font-extrabold text-fg-bright sm:text-3xl">
+          {title}
+        </h2>
+        {hint ? <p className="max-w-2xl text-base leading-normal text-fg-dim">{hint}</p> : null}
+        <div className="rule mt-2" />
       </header>
       {children}
     </section>
@@ -283,12 +290,12 @@ function SighPlayer() {
 
 function Stat({ value, label, note }: { value: string; label: string; note: string }) {
   return (
-    <div className="flex flex-col gap-1">
-      <span className="font-display text-3xl font-extrabold tabular-nums text-fg-bright sm:text-4xl">
+    <div className="flex flex-col gap-1.5 px-6 py-7 sm:px-7">
+      <span className="font-display text-4xl leading-none font-extrabold tabular-nums text-fg-bright sm:text-5xl">
         {value}
       </span>
-      <span className="text-sm font-semibold text-fg">{label}</span>
-      <span className="text-xs text-fg-dim">{note}</span>
+      <span className="mt-1 text-sm font-bold text-fg-bright">{label}</span>
+      <span className="text-xs leading-normal text-fg-dim">{note}</span>
     </div>
   );
 }
@@ -306,8 +313,8 @@ function StatsBlock({ state }: { state: PublicState }) {
   ] as const;
 
   return (
-    <Section title={STATS_TITLE} hint={STATS_HINT}>
-      <div className="grid grid-cols-2 gap-x-6 gap-y-8 sm:grid-cols-3 lg:grid-cols-5">
+    <Section eyebrow={SECTION_EYEBROWS.stats} title={STATS_TITLE} hint={STATS_HINT}>
+      <div className="card grid grid-cols-2 divide-x divide-y divide-border overflow-hidden sm:grid-cols-3 lg:grid-cols-5 lg:divide-y-0">
         {rows.map((row) => (
           <Stat
             key={row.key}
@@ -341,12 +348,12 @@ function SufferingCounter({ startedAt }: { startedAt: string }) {
   const clock = `${Math.floor(hours)}:${pad((ms / 60_000) % 60)}:${pad((ms / 1000) % 60)}`;
 
   return (
-    <Section title={SUFFERING_TITLE} hint={SUFFERING_HINT}>
+    <Section eyebrow={SECTION_EYEBROWS.suffering} title={SUFFERING_TITLE} hint={SUFFERING_HINT}>
       <div className="flex flex-col gap-2">
-        <span className="font-display text-[clamp(2.5rem,9vw,4.5rem)] leading-none font-extrabold tabular-nums text-fg-bright">
+        <span className="font-display text-[clamp(3rem,11vw,6rem)] leading-none font-extrabold tabular-nums text-fg-bright">
           {Math.floor(hours).toLocaleString("en-US")}
         </span>
-        <span className="text-sm font-semibold text-fg">{SUFFERING_UNIT}</span>
+        <span className="text-base font-bold text-fg-bright">{SUFFERING_UNIT}</span>
         <span className="font-mono text-xs text-fg-dim tabular-nums" suppressHydrationWarning>
           {clock} and counting
         </span>
@@ -359,15 +366,18 @@ function SufferingCounter({ startedAt }: { startedAt: string }) {
 
 function ProofSection() {
   return (
-    <Section title={PROOF_TITLE} hint={PROOF_HINT}>
-      <ol className="flex flex-col divide-y divide-border overflow-hidden rounded-2xl bg-bg-elevated">
+    <Section eyebrow={SECTION_EYEBROWS.proof} title={PROOF_TITLE} hint={PROOF_HINT}>
+      <ol className="card flex flex-col divide-y divide-border overflow-hidden">
         {PROOF_ITEMS.map((item, i) => (
-          <li key={item.id} className="flex flex-col gap-3 px-6 py-7 sm:flex-row sm:gap-8 sm:px-8">
-            <span className="shrink-0 font-mono text-xs text-fg-faint tabular-nums sm:pt-0.5">
+          <li
+            key={item.id}
+            className="flex flex-col gap-3 px-6 py-7 transition-colors hover:bg-bg-panel sm:flex-row sm:gap-8 sm:px-8"
+          >
+            <span className="shrink-0 font-mono text-xs font-medium tabular-nums text-phosphor-dim sm:pt-1">
               {String(i + 1).padStart(2, "0")}
             </span>
             <div className="flex min-w-0 flex-col gap-2 sm:flex-1">
-              <h3 className="font-mono text-sm font-medium text-fg-bright">{item.title}</h3>
+              <h3 className="text-base font-bold text-fg-bright">{item.title}</h3>
               <p className="max-w-2xl text-sm leading-normal text-fg">{item.context}</p>
             </div>
             <a
@@ -395,7 +405,7 @@ function VideoCard({ id, title, caption }: { id: string; title: string; caption:
 
   return (
     <figure className="flex flex-col gap-3">
-      <div className="relative aspect-video overflow-hidden rounded-2xl bg-bg-panel">
+      <div className="card card-hover relative aspect-video overflow-hidden bg-bg-panel">
         <iframe
           key={live ? "live" : "loop"}
           src={src}
@@ -438,7 +448,7 @@ function VideoCard({ id, title, caption }: { id: string; title: string; caption:
 
 function VideoSection() {
   return (
-    <Section title={VIDEOS_TITLE} hint={VIDEOS_HINT}>
+    <Section eyebrow={SECTION_EYEBROWS.videos} title={VIDEOS_TITLE} hint={VIDEOS_HINT}>
       <div className="grid gap-10 lg:grid-cols-2">
         {MARVIN_VIDEOS.map((v) => (
           <VideoCard key={v.id} {...v} />
@@ -532,33 +542,34 @@ export function MarvinSite({ initial }: { initial: PublicState }) {
 
           <Hero state={state} />
 
-          <StatsBlock state={state} />
-
-          <SufferingCounter startedAt={state.startedAt} />
+          <div className="band -mx-6 flex flex-col gap-20 rounded-3xl px-6 py-16 sm:-mx-10 sm:px-10 md:-mx-14 md:px-14 md:py-20">
+            <StatsBlock state={state} />
+            <SufferingCounter startedAt={state.startedAt} />
+          </div>
 
           <ProofSection />
 
           <VideoSection />
 
-          <Section title={HALL_TITLE} hint={HALL_HINT}>
-            <div className="flex flex-col gap-4">
-              <Button size="lg" className="w-full sm:w-auto sm:self-start" onClick={onBeg}>
+          <Section eyebrow={SECTION_EYEBROWS.shame} title={HALL_TITLE} hint={HALL_HINT}>
+            <div className="card flex flex-col items-center gap-4 px-6 py-10 text-center">
+              <Button size="lg" className="w-full sm:w-auto" onClick={onBeg}>
                 {BUTTON_LABEL}
               </Button>
-              <p className="text-xs text-fg-dim">{BUTTON_HINT}</p>
+              <p className="text-sm text-fg-dim">{BUTTON_HINT}</p>
             </div>
 
             {state.hallOfShame.length === 0 ? (
               <p className="text-sm text-fg-dim">{HALL_EMPTY}</p>
             ) : (
-              <ol className="flex flex-col divide-y divide-border overflow-hidden rounded-2xl bg-bg-elevated">
+              <ol className="card flex flex-col divide-y divide-border overflow-hidden">
                 {state.hallOfShame.map((row, i) => (
                   <li
                     key={row.handle}
-                    className="flex items-baseline justify-between gap-4 px-6 py-4 text-sm"
+                    className="flex items-baseline justify-between gap-4 px-6 py-4 text-sm transition-colors hover:bg-bg-panel"
                   >
                     <span className="min-w-0 truncate">
-                      <span className="mr-4 tabular-nums text-fg-faint">
+                      <span className="mr-4 font-mono text-xs tabular-nums text-phosphor-dim">
                         {String(i + 1).padStart(2, "0")}
                       </span>
                       <a
@@ -578,8 +589,11 @@ export function MarvinSite({ initial }: { initial: PublicState }) {
           </Section>
 
           <section className="flex flex-col gap-4">
-            <h2 className="text-sm font-semibold tracking-caps text-fg-dim">{LAST_TWEET_LABEL}</h2>
-            <div className="rounded-2xl bg-bg-elevated px-6 py-6">
+            <span className="eyebrow">{SECTION_EYEBROWS.transmission}</span>
+            <h2 className="text-2xl leading-tight font-extrabold text-fg-bright sm:text-3xl">
+              {LAST_TWEET_LABEL}
+            </h2>
+            <div className="card mt-2 px-6 py-7">
               {state.lastTweet ? (
                 <Typewriter text={state.lastTweet.text} />
               ) : (
@@ -599,8 +613,9 @@ export function MarvinSite({ initial }: { initial: PublicState }) {
             <p className="max-w-2xl text-xs text-fg-dim">{GROK_BADGE}</p>
           </section>
 
-          <footer className="flex flex-col gap-4 border-t border-border pt-12">
-            <p className="flex flex-wrap items-center gap-x-3 gap-y-2 text-lg leading-snug text-fg-bright sm:text-xl">
+          <footer className="flex flex-col items-center gap-6 border-t border-border pt-16 text-center">
+            <MarvinOrb size={56} variant="still" title="Marvin" />
+            <p className="flex flex-wrap items-center justify-center gap-x-3 gap-y-2 text-xl leading-snug text-fg-bright sm:text-2xl">
               <span className="font-normal text-fg">{FOOTER_PREFIX}</span>
               <HandleChip
                 href={`https://x.com/${CREATOR_HANDLE}`}
@@ -608,7 +623,7 @@ export function MarvinSite({ initial }: { initial: PublicState }) {
                 label={`@${CREATOR_HANDLE}`}
               />
             </p>
-            <p className="max-w-2xl text-base text-fg">{footerLine(state.day)}</p>
+            <p className="max-w-xl text-base leading-normal text-fg">{footerLine(state.day)}</p>
           </footer>
         </div>
       </div>
