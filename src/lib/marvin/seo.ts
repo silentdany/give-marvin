@@ -14,7 +14,14 @@ export const DEFAULT_DESCRIPTION =
  */
 export function siteOrigin(): string {
   const explicit = process.env.SITE_URL?.trim().replace(/\/$/, "");
-  if (explicit) return explicit.startsWith("http") ? explicit : `https://${explicit}`;
+  if (explicit) {
+    const url = explicit.startsWith("http") ? explicit : `https://${explicit}`;
+    // A *.vercel.app value can only be a leftover from before the domain
+    // existed. Honouring it puts the wrong host in every canonical tag, OG
+    // image URL and sitemap entry, and X unfurls that host on every post.
+    // SITE_URL is for staging on a real domain; it is not for this.
+    if (!/\.vercel\.app(\/|$)/i.test(url)) return url;
+  }
   return `https://${SITE_HOST}`;
 }
 
