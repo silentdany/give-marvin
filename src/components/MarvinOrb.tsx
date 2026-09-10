@@ -33,14 +33,17 @@ import { cn } from "@/lib/utils";
  */
 
 /**
- * The supplied render is 1408×1408 with roughly a tenth of transparent margin
- * on every side — the ball only occupies x 153–1275, y 127–1277. Cropping it
- * away is the difference between a logo and a small grey dot in a big box.
+ * The supplied render is 1408×1408 with a wide transparent margin: the ball
+ * occupies x 153–1275, y 127–1276 — 1122 wide by 1150 tall, a little taller
+ * than it is wide because the shading softens past the silhouette top and
+ * bottom. Fitting the width would push those 28 rows under `overflow: hidden`
+ * and flatten the circle, so the height is what gets fitted and the artwork is
+ * centred across. Nothing is clipped.
  */
 const ASSET_CROP = {
-  width: "125.49%",
-  left: "-13.64%",
-  top: "-10.07%",
+  width: "122.435%",
+  left: "-12.087%",
+  top: "-11.044%",
 };
 
 export type OrbVariant =

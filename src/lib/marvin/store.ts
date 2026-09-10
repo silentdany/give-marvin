@@ -51,6 +51,7 @@ export function defaultState(): MarvinState {
     elonComment: null,
     elonCommentUrl: null,
     stats: emptyStats(),
+    lastStatsError: null,
     visits: 0,
     hallOfShame: [],
   };
@@ -106,6 +107,7 @@ function migrate(stored: MarvinState): MarvinState {
     hallOfShame: Array.isArray(stored.hallOfShame) ? stored.hallOfShame : [],
     tweetIds: Array.isArray(stored.tweetIds) ? stored.tweetIds : [],
     stats: { ...emptyStats(), ...(stored.stats ?? {}) },
+    lastStatsError: stored.lastStatsError ?? null,
     visits: Number.isFinite(stored.visits) ? stored.visits : 0,
   };
 

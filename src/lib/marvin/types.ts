@@ -71,6 +71,8 @@ export type MarvinState = {
   elonComment: string | null;
   elonCommentUrl: string | null;
   stats: TweetStats;
+  /** Why the last stats refresh produced nothing. Null when it worked. */
+  lastStatsError: string | null;
   visits: number;
   hallOfShame: ShameEntry[];
 };

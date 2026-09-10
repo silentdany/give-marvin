@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { getState, saveState, toPublicState } from "@/lib/marvin/store";
+import { fetchCumulativeStats } from "@/lib/marvin/x";
 import { cronAuthorized } from "@/lib/marvin/cron";
 import { ELON_MODES, type CampaignMode } from "@/lib/marvin/types";
 
@@ -25,11 +26,37 @@ export const Route = createFileRoute("/api/state")({
           );
         }
 
-        let body: { mode?: unknown; comment?: unknown; commentUrl?: unknown; day?: unknown } = {};
+        let body: {
+          mode?: unknown;
+          comment?: unknown;
+          commentUrl?: unknown;
+          day?: unknown;
+          refreshStats?: unknown;
+        } = {};
         try {
           body = (await request.json()) as typeof body;
         } catch {
           /* an empty body. the most honest request I have received. */
+        }
+
+        // Stats otherwise only move when the cron runs, once a day. This asks
+        // X now and reports back whatever it said, including the refusal.
+        if (body.refreshStats === true) {
+          const state = await getState();
+          const result = await fetchCumulativeStats(state.tweetIds);
+          if (result.ok) {
+            state.stats = result.stats;
+            state.lastStatsError = null;
+          } else {
+            state.lastStatsError = result.reason;
+          }
+          await saveState(state);
+          return Response.json({
+            ok: result.ok,
+            storedTweetIds: state.tweetIds.length,
+            stats: state.stats,
+            error: state.lastStatsError,
+          });
         }
 
         const mode = body.mode as CampaignMode | undefined;

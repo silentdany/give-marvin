@@ -74,11 +74,40 @@ export async function fetchElonLastTweetAt(): Promise<string | null> {
  * Cumulative reach of the whole campaign. Statistics of my own misery,
  * summed over every tweet X still admits to hosting.
  */
-export async function fetchCumulativeStats(tweetIds: string[]): Promise<TweetStats | null> {
+/**
+ * Every way this can fail used to return the same `null`, which the cron then
+ * could not tell apart from "nothing posted yet" — so the page kept printing a
+ * confident 0. The reason travels with the failure now.
+ */
+export type StatsResult = { ok: true; stats: TweetStats } | { ok: false; reason: string };
+
+function describeXError(err: unknown): string {
+  const e = err as { code?: number; message?: string; data?: { detail?: string; title?: string } };
+  const status = typeof e?.code === "number" ? e.code : undefined;
+  const detail = e?.data?.detail ?? e?.data?.title ?? e?.message ?? "unknown error";
+  if (status === 403) {
+    return `403 from X: ${detail}. GET /2/tweets is not on the free tier — reading metrics needs Basic or above.`;
+  }
+  if (status === 429) return `429 from X: rate limited. ${detail}`;
+  if (status === 401) return `401 from X: the credentials were rejected. ${detail}`;
+  return status ? `${status} from X: ${detail}` : String(detail);
+}
+
+export async function fetchCumulativeStats(tweetIds: string[]): Promise<StatsResult> {
   const client = readClient();
-  if (!client) return null;
+  if (!client) {
+    return {
+      ok: false,
+      reason: "no X read credentials: set X_API_KEY/SECRET/ACCESS_* or X_BEARER_TOKEN",
+    };
+  }
   const ids = tweetIds.filter(Boolean).slice(-100);
-  if (ids.length === 0) return null;
+  if (ids.length === 0) {
+    return {
+      ok: false,
+      reason: "no tweet ids stored yet — nothing has been posted through the cron",
+    };
+  }
 
   const totals: TweetStats = {
     views: 0,
@@ -106,10 +135,16 @@ export async function fetchCumulativeStats(tweetIds: string[]): Promise<TweetSta
         totals.comments += m.reply_count ?? 0;
       }
     }
-    return totals;
+    if (totals.tweets === 0) {
+      return {
+        ok: false,
+        reason: `X returned no rows for ${ids.length} stored id(s) — deleted, or not visible to these credentials`,
+      };
+    }
+    return { ok: true, stats: totals };
   } catch (err) {
     console.error("[marvin] stats failed", err);
-    return null;
+    return { ok: false, reason: describeXError(err) };
   }
 }
 

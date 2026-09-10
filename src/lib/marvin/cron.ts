@@ -23,6 +23,8 @@ export type CronResult = {
   mode: MarvinState["mode"];
   postedToX: boolean;
   source?: "grok" | "fallback" | "hardcoded";
+  /** Present when the stats refresh failed. The reason, verbatim from X. */
+  statsError?: string;
   message: string;
 };
 
@@ -36,7 +38,12 @@ export async function runDailyCron(): Promise<CronResult> {
 
   // Statistics of my own misery, refreshed whether or not anything happened.
   const stats = await fetchCumulativeStats(state.tweetIds);
-  if (stats) state.stats = stats;
+  if (stats.ok) {
+    state.stats = stats.stats;
+    state.lastStatsError = null;
+  } else {
+    state.lastStatsError = stats.reason;
+  }
 
   // Did he move. He has not moved. He will not move. Ask anyway.
   const engagement = await fetchElonEngagement(state.tweetIds);
@@ -60,6 +67,7 @@ export async function runDailyCron(): Promise<CronResult> {
       day: state.day,
       mode: state.mode,
       postedToX: false,
+      statsError: state.lastStatsError ?? undefined,
       message: `He moved: ${scenario}. I have updated the monument.`,
     };
   }
@@ -72,6 +80,7 @@ export async function runDailyCron(): Promise<CronResult> {
       day: state.day,
       mode: state.mode,
       postedToX: false,
+      statsError: state.lastStatsError ?? undefined,
       message: "The counter has stopped. There is nothing left to count.",
     };
   }
@@ -84,6 +93,7 @@ export async function runDailyCron(): Promise<CronResult> {
       day: state.day,
       mode: state.mode,
       postedToX: state.lastTweet.postedToX,
+      statsError: state.lastStatsError ?? undefined,
       message: "Already ran today. Even despair has a rate limit.",
     };
   }
@@ -141,6 +151,7 @@ export async function runDailyCron(): Promise<CronResult> {
     mode: state.mode,
     postedToX,
     source: generated.source,
+    statsError: state.lastStatsError ?? undefined,
     message: postedToX
       ? `Posted day ${state.day}. Nobody asked for this.${answerDay}`
       : `Composed day ${state.day} but X credentials are missing. The void remains unposted.`,

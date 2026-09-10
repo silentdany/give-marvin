@@ -294,11 +294,14 @@ function Stat({ value, label, note }: { value: string; label: string; note: stri
 }
 
 function StatsBlock({ state }: { state: PublicState }) {
+  // Until a refresh actually succeeds we do not know the tweet numbers, and a
+  // confident "0" is a lie. Visits are counted here, so they always have one.
+  const known = state.stats.updatedAt !== null;
   const rows = [
-    { key: "views", value: state.stats.views },
-    { key: "likes", value: state.stats.likes },
-    { key: "reposts", value: state.stats.reposts },
-    { key: "comments", value: state.stats.comments },
+    { key: "views", value: known ? state.stats.views : null },
+    { key: "likes", value: known ? state.stats.likes : null },
+    { key: "reposts", value: known ? state.stats.reposts : null },
+    { key: "comments", value: known ? state.stats.comments : null },
     { key: "visits", value: state.visits },
   ] as const;
 
@@ -308,7 +311,7 @@ function StatsBlock({ state }: { state: PublicState }) {
         {rows.map((row) => (
           <Stat
             key={row.key}
-            value={compact(row.value)}
+            value={row.value === null ? "—" : compact(row.value)}
             label={STATS_LABELS[row.key]}
             note={STATS_FOOTNOTES[row.key]}
           />

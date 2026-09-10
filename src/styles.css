@@ -187,6 +187,14 @@
     overflow: hidden;
   }
 
+  /* The render is a mid grey and sits heavy on a white page. Brightness lifts
+     the shell while leaving the groove dark, since it scales rather than
+     shifts. Past ~1.2 the highlight blows out and the top of the silhouette
+     dissolves into the page, so this is as far as it goes. */
+  .orb-asset img {
+    filter: brightness(1.15);
+  }
+
   .orb-asset[data-variant="spin"] {
     animation: orb-lean 16s ease-in-out infinite;
   }
