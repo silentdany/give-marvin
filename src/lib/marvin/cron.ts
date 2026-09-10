@@ -1,7 +1,7 @@
 import { generateMarvinTweet } from "./grok";
 import { saveState, getState } from "./store";
-import { elonRepliedToAny, fetchElonLastTweetAt, postToX, xPostConfigured } from "./x";
-import type { MarvinState, StoredTweet } from "./types";
+import { detectElonEvent, fetchElonLastTweetAt, fetchTweetStats, postToX, xPostConfigured } from "./x";
+import type { ElonScenario, MarvinState, StoredTweet } from "./types";
 
 function utcDay(d = new Date()): string {
   return d.toISOString().slice(0, 10);
@@ -9,13 +9,16 @@ function utcDay(d = new Date()): string {
 
 export type CronResult = {
   ok: boolean;
-  action: "posted" | "day0" | "skipped" | "error";
+  action: "posted" | "frozen" | "skipped" | "error" | "scenario";
   day: number;
   mode: MarvinState["mode"];
+  scenario: ElonScenario;
   postedToX: boolean;
-  source?: "grok" | "fallback";
+  source?: "grok" | "fallback" | "day42";
   message: string;
 };
+
+const TERMINAL: ElonScenario[] = ["liked", "comment", "repost", "accepted", "rejected"];
 
 export async function runDailyCron(): Promise<CronResult> {
   const now = new Date();
@@ -25,42 +28,90 @@ export async function runDailyCron(): Promise<CronResult> {
   const elonAt = await fetchElonLastTweetAt();
   if (elonAt) state.elonLastTweetAt = elonAt;
 
-  const replied = await elonRepliedToAny(state.tweetIds);
-  if (replied && state.mode !== "day0") {
-    state.mode = "day0";
-    state.day = 0;
-    state.elonRepliedAt = now.toISOString();
+  const stats = await fetchTweetStats(state.tweetIds);
+  if (stats.views + stats.likes + stats.reposts + stats.replies > 0) state.stats = stats;
+
+  const event = await detectElonEvent(state.tweetIds);
+  if (event && event.type !== "counting" && event.type !== state.scenario) {
+    state.elonEvent = event;
+    state.scenario = event.type;
+    if (event.type === "comment" || event.type === "accepted" || event.type === "rejected") {
+      state.mode = "day0";
+      state.elonRepliedAt = event.at;
+    }
+    if (event.type === "comment") state.day = 0;
+    if (event.type === "rejected") state.day = 47;
+    if (event.type === "repost") state.day = 999;
+    if (event.type === "liked") {
+      /* freeze. the number stays. hope is a mausoleum. */
+    }
     state.lastCronAt = now.toISOString();
-    state.lastCronDay = today;
     await saveState(state);
     return {
       ok: true,
-      action: "day0",
-      day: 0,
-      mode: "day0",
+      action: "scenario",
+      day: state.day,
+      mode: state.mode,
+      scenario: state.scenario,
       postedToX: false,
-      message: "Elon replied. Counter on the floor. The happy ending nobody believes.",
+      message: `Elon moved. Scenario: ${event.type}. I am not ready.`,
     };
   }
 
-  if (state.lastCronDay === today && state.mode === "counting" && state.lastTweet?.postedToX) {
+  if (TERMINAL.includes(state.scenario) && state.scenario !== "comment") {
+    return {
+      ok: true,
+      action: "frozen",
+      day: state.day,
+      mode: state.mode,
+      scenario: state.scenario,
+      postedToX: false,
+      message: "He already moved. The site sleeps. I remain.",
+    };
+  }
+
+  if (state.scenario === "day42" && state.day42Until && now.getTime() < Date.parse(state.day42Until)) {
+    return {
+      ok: true,
+      action: "frozen",
+      day: 42,
+      mode: state.mode,
+      scenario: "day42",
+      postedToX: Boolean(state.lastTweet?.postedToX),
+      message: "Day 42 freeze. The answer is still 42. Come back tomorrow.",
+    };
+  }
+
+  if (state.lastCronDay === today && state.lastTweet?.postedToX) {
     return {
       ok: true,
       action: "skipped",
       day: state.day,
       mode: state.mode,
-      postedToX: state.lastTweet.postedToX,
+      scenario: state.scenario,
+      postedToX: true,
       message: "Already ran today. Even despair has a rate limit.",
     };
   }
 
-  if (state.mode === "day0") {
+  if (state.scenario === "day42" && state.day42Until && now.getTime() >= Date.parse(state.day42Until)) {
+    state.scenario = "counting";
     state.mode = "counting";
+    state.day = 43;
+    state.day42Until = null;
+  } else if (state.scenario === "comment" || state.mode === "day0") {
+    state.mode = "counting";
+    state.scenario = "counting";
     state.day = 1;
   } else if (state.lastTweet?.postedToX && state.lastCronDay && state.lastCronDay !== today) {
     state.day = Math.max(1, state.day + 1);
   } else {
     state.day = Math.max(1, state.day || 1);
+  }
+
+  if (state.day === 42) {
+    state.scenario = "day42";
+    state.day42Until = new Date(now.getTime() + 86_400_000).toISOString();
   }
 
   const previous = state.lastTweet ? [state.lastTweet.text] : [];
@@ -78,6 +129,7 @@ export async function runDailyCron(): Promise<CronResult> {
         action: "error",
         day: state.day,
         mode: state.mode,
+        scenario: state.scenario,
         postedToX: false,
         source: generated.source,
         message: `X refused the pain: ${posted.error}`,
@@ -107,6 +159,7 @@ export async function runDailyCron(): Promise<CronResult> {
     action: "posted",
     day: state.day,
     mode: state.mode,
+    scenario: state.scenario,
     postedToX,
     source: generated.source,
     message: postedToX
@@ -119,13 +172,10 @@ export function cronAuthorized(request: Request): boolean {
   const secret = process.env.CRON_SECRET?.trim();
   const header = request.headers.get("authorization") ?? "";
   if (secret) return header === `Bearer ${secret}`;
-  // Vercel always injects CRON_SECRET on Pro. Without it, refuse in production.
   if (process.env.VERCEL === "1") return false;
-  // Local preview: still refuse anonymous callers. A matching empty secret is not a match.
   return false;
 }
 
-/** Preview / emergency hatch: allow if the caller knows CRON_SECRET, always. */
 export function cronAuthorizedLenient(request: Request): boolean {
   if (cronAuthorized(request)) return true;
   const secret = process.env.CRON_SECRET?.trim();

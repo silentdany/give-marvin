@@ -161,6 +161,117 @@
     box-shadow: 0 0 0 1px var(--color-border);
     border-radius: var(--radius-lg);
   }
+
+  .guide {
+    background: #f7f7f5;
+    border-radius: 28px;
+    padding: 1.25rem 1.25rem 1.5rem;
+    box-shadow: 0 0 0 1px var(--color-border), 0 28px 60px rgb(40 40 38 / 0.08);
+  }
+
+  .guide-bezel {
+    margin: 0 0 0.85rem;
+    font-size: 0.7rem;
+    letter-spacing: 0.28em;
+    text-transform: uppercase;
+    color: var(--color-fg-dim);
+  }
+
+  .guide-screen {
+    min-height: 14rem;
+    display: grid;
+    place-items: center;
+    background: #ecece8;
+    border-radius: 18px;
+  }
+
+  .guide-screen--red .guide-number {
+    color: var(--color-danger);
+  }
+
+  .guide-number {
+    margin: 0;
+    font-family: var(--font-display);
+    font-size: clamp(5.5rem, 18vw, 9.5rem);
+    font-weight: 800;
+    line-height: 0.9;
+    letter-spacing: -0.05em;
+    color: var(--color-fg-bright);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .marvin-orb {
+    position: relative;
+    flex-shrink: 0;
+    perspective: 600px;
+  }
+
+  .marvin-orb__face {
+    width: 100%;
+    height: 100%;
+    display: block;
+    transform-style: preserve-3d;
+    animation: orb-turn 14s linear infinite;
+  }
+
+  .marvin-orb__grok {
+    animation: grok-eyes 14s ease-in-out infinite;
+  }
+
+  .marvin-orb__marvin {
+    animation: marvin-eyes 14s ease-in-out infinite;
+  }
+
+  .marvin-orb--whole .marvin-orb__grok {
+    opacity: 0;
+    animation: none;
+  }
+
+  .marvin-orb--whole .marvin-orb__marvin {
+    opacity: 1;
+    animation: none;
+  }
+
+  .marvin-orb--whole .marvin-orb__face,
+  .marvin-orb--cracked .marvin-orb__face {
+    animation: none;
+  }
+
+  .marvin-orb--spin-back .marvin-orb__face {
+    animation: orb-turn-back 8s linear infinite;
+  }
+
+  .marvin-orb--cracked {
+    overflow: visible;
+  }
+
+  .marvin-orb--cracked .marvin-orb__face {
+    clip-path: polygon(0 0, 47% 0, 44% 100%, 0 100%);
+    transform: translateX(-6px) rotate(-6deg);
+  }
+
+  .marvin-orb--cracked::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(circle at 38% 32%, #fff 0%, #f4f4f2 55%, #d8d8d4 100%);
+    clip-path: polygon(53% 0, 100% 0, 100% 100%, 56% 100%);
+    transform: translateX(8px) rotate(7deg);
+    border-radius: 50%;
+  }
+
+  .scenario-liked {
+    background-color: #d8efe0;
+  }
+
+  .scenario-liked.corridor {
+    background-image: none;
+  }
+
+  .scenario-rejected .guide-number {
+    color: var(--color-danger);
+  }
 }
 
 @keyframes rise {
@@ -185,6 +296,28 @@
   }
 }
 
+@keyframes orb-turn {
+  from { transform: rotateY(0deg); }
+  to { transform: rotateY(360deg); }
+}
+
+@keyframes orb-turn-back {
+  from { transform: rotateY(360deg); }
+  to { transform: rotateY(0deg); }
+}
+
+@keyframes grok-eyes {
+  0%, 18% { opacity: 1; }
+  50% { opacity: 0; }
+  82%, 100% { opacity: 1; }
+}
+
+@keyframes marvin-eyes {
+  0%, 18% { opacity: 0; }
+  50% { opacity: 1; }
+  82%, 100% { opacity: 0; }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .stagger > * {
     animation: none;
@@ -192,5 +325,16 @@
   .cursor-block {
     animation: none;
     opacity: 0.8;
+  }
+  .marvin-orb__face,
+  .marvin-orb__grok,
+  .marvin-orb__marvin {
+    animation: none;
+  }
+  .marvin-orb__marvin {
+    opacity: 1;
+  }
+  .marvin-orb__grok {
+    opacity: 0.35;
   }
 }

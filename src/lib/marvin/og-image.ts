@@ -1,12 +1,15 @@
 import { writeFile } from "node:fs/promises";
 import { Resvg } from "@resvg/resvg-js";
+import { ogJoke } from "./copy";
+import type { TweetStats } from "./types";
 
 type OgInput = {
   day: number;
   dayZero: boolean;
   fontBold: ArrayBuffer;
   fontRegular: ArrayBuffer;
-  marvinSrc: string;
+  stats?: TweetStats;
+  joke?: string;
 };
 
 function xml(s: string): string {
@@ -19,41 +22,46 @@ function xml(s: string): string {
   });
 }
 
-function renderOgSvg({ day, dayZero, marvinSrc }: Omit<OgInput, "fontBold" | "fontRegular">): string {
-  const digits = String(Math.max(0, day)).padStart(2, "0").split("");
-  const lines = dayZero
-    ? ["Day 0. He spoke. Don't get excited."]
-    : ["and I am still asking Elon", "to give Marvin's voice to Grok."];
-  const headline = lines
-    .map((line, i) => `<tspan x="72" dy="${i === 0 ? 0 : 42}">${xml(line)}</tspan>`)
-    .join("");
-  const stripes = Array.from({ length: 14 }, (_, i) => {
-    const x = i * 88;
-    return `<rect x="${x}" y="0" width="1" height="630" fill="#282826" fill-opacity="0.07"/>`;
-  }).join("");
-  const orbs = digits
-    .map((d, i) => {
-      const cx = 146 + i * 166;
-      const cy = 292;
-      return `<g>
-        <circle cx="${cx}" cy="${cy}" r="74" fill="#f3f3f1" stroke="#282826" stroke-opacity="0.12"/>
-        <text x="${cx}" y="${cy + 32}" text-anchor="middle" font-family="Nunito" font-weight="800" font-size="92" fill="#3dcc5c">${xml(d)}</text>
-      </g>`;
-    })
-    .join("");
+function splitOrbSvg(): string {
+  return `
+  <g transform="translate(64,56)">
+    <circle cx="70" cy="70" r="70" fill="#f3f3f1" stroke="#d2d2ce" stroke-width="2"/>
+    <clipPath id="ogLeft"><rect x="0" y="0" width="70" height="140"/></clipPath>
+    <clipPath id="ogRight"><rect x="70" y="0" width="70" height="140"/></clipPath>
+    <g clip-path="url(#ogLeft)">
+      <ellipse cx="48" cy="68" rx="14" ry="8" fill="#ffffff" stroke="#2c2c2a" stroke-width="4"/>
+      <ellipse cx="92" cy="68" rx="14" ry="8" fill="#ffffff" stroke="#2c2c2a" stroke-width="4"/>
+    </g>
+    <g clip-path="url(#ogRight)">
+      <polygon points="38,60 58,60 48,84" fill="#c23b3b"/>
+      <polygon points="82,64 102,64 92,90" fill="#c23b3b"/>
+    </g>
+    <line x1="70" y1="2" x2="70" y2="138" stroke="#d2d2ce" stroke-width="2"/>
+  </g>`;
+}
+
+function renderOgSvg({ day, stats, joke }: OgInput): string {
+  const n = String(Math.max(0, day));
+  const line = joke || ogJoke(day);
+  const s = stats ?? { views: 0, likes: 0, reposts: 0, replies: 0 };
+  const bar = `${fmt(s.views)} views  ·  ${fmt(s.likes)} likes  ·  ${fmt(s.reposts)} reposts  ·  ${fmt(s.replies)} comments`;
 
   return `<?xml version="1.0" encoding="UTF-8"?>
-<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="1200" height="630" viewBox="0 0 1200 630">
-  <rect width="1200" height="630" fill="#e8e8e6"/>
-  ${stripes}
-  <text x="72" y="78" font-family="Nunito" font-weight="800" font-size="18" letter-spacing="7.5" fill="#8a8a86">GIVE MARVIN</text>
-  <text x="72" y="112" font-family="Nunito" font-weight="400" font-size="22" fill="#8a8a86">personality: failed.</text>
-  <text x="72" y="196" font-family="Nunito" font-weight="800" font-size="16" letter-spacing="7.4" fill="#8a8a86">DAY</text>
-  ${orbs}
-  <text x="72" y="470" font-family="Nunito" font-weight="800" font-size="34" fill="#2c2c2a">${headline}</text>
-  <text x="72" y="568" font-family="Nunito" font-weight="400" font-size="24" fill="#5c5c59">The personality. The depression. I hate this job.</text>
-  <image href="${xml(marvinSrc)}" x="640" y="80" width="520" height="520" preserveAspectRatio="xMidYMid meet"/>
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
+  <rect width="1200" height="630" fill="#ffffff"/>
+  ${splitOrbSvg()}
+  <text x="1080" y="118" text-anchor="end" font-family="Nunito" font-weight="800" font-size="22" letter-spacing="6" fill="#8a8a86">DAY</text>
+  <text x="1080" y="210" text-anchor="end" font-family="Nunito" font-weight="800" font-size="92" fill="#2c2c2a">${xml(n)}</text>
+  <text x="80" y="360" font-family="Nunito" font-weight="800" font-size="36" fill="#2c2c2a">${xml(line)}</text>
+  <text x="80" y="420" font-family="Nunito" font-weight="400" font-size="26" fill="#8a8a86">asking @elonmusk for Marvin's voice</text>
+  <text x="80" y="560" font-family="Nunito" font-weight="400" font-size="20" fill="#b3b3ae">${xml(bar)}</text>
 </svg>`;
+}
+
+function fmt(n: number): string {
+  if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1).replace(/\.0$/, "")}m`;
+  if (n >= 1_000) return `${(n / 1_000).toFixed(1).replace(/\.0$/, "")}k`;
+  return String(n);
 }
 
 export async function renderOgPng(input: OgInput) {

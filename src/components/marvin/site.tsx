@@ -1,21 +1,29 @@
-import { useMemo, useState, type FormEvent } from "react";
+"use client";
+
+import { useEffect, useMemo, useState, type FormEvent } from "react";
 import * as Dialog from "@radix-ui/react-dialog";
 import { Button } from "@/components/ui/button";
-import { Typewriter } from "@/components/marvin/typewriter";
+import { MarvinOrb } from "@/components/marvin/MarvinOrb";
 import {
   BOOT_LINE,
   BUTTON_HINT,
   BUTTON_LABEL,
-  DAY0_TITLE,
+  DAY42_SITE,
+  FOOTER_ROAST,
+  GROK_BADGE,
   HALL_EMPTY,
   HALL_TITLE,
-  LAST_TWEET_LABEL,
+  PROOF_TITLE,
+  SCENARIO_COPY,
   SHAME_PLACEHOLDER,
   SHAME_PROMPT,
+  STATS_TITLE,
+  SUFFERING_LABEL,
+  WHO_TITLE,
   intentTweet,
-  oneLiner,
 } from "@/lib/marvin/copy";
-import { CREATOR_HANDLE, type PublicState, type ShameResult } from "@/lib/marvin/types";
+import { CLIPS, PROOFS } from "@/lib/marvin/proofs";
+import { CREATOR_HANDLE, type ElonScenario, type PublicState, type ShameResult } from "@/lib/marvin/types";
 import { cn } from "@/lib/utils";
 
 function HandleChip({
@@ -39,10 +47,8 @@ function HandleChip({
       <span>{label}</span>
     </>
   );
-
   const className =
     "inline-flex items-center gap-1.5 whitespace-nowrap no-underline hover:text-phosphor-dim";
-
   if (href) {
     return (
       <a href={href} className={className}>
@@ -53,40 +59,102 @@ function HandleChip({
   return <span className={className}>{inner}</span>;
 }
 
-function DayLockup({ day, dayZero }: { day: number; dayZero: boolean }) {
-  const digits = String(Math.max(0, day)).padStart(2, "0").split("");
+function displayDay(state: PublicState): number {
+  if (state.scenario === "repost") return 999;
+  if (state.scenario === "rejected") return 47;
+  if (state.scenario === "comment") return 0;
+  if (state.scenario === "day42") return 42;
+  return state.day;
+}
 
+function orbMood(scenario: ElonScenario) {
+  if (scenario === "accepted") return "whole" as const;
+  if (scenario === "rejected") return "cracked" as const;
+  if (scenario === "repost") return "spin-back" as const;
+  return "split" as const;
+}
+
+function GuideScreen({ day, hide, red }: { day: number; hide?: boolean; red?: boolean }) {
   return (
-    <h1 className="flex flex-col items-start gap-8">
-      <span className="text-xs tracking-day text-fg-dim">DAY</span>
-      <span className="flex gap-3" aria-label={`Day ${day}`}>
-        {digits.map((d, i) => (
-          <span
-            key={`${d}-${i}`}
-            className="digit-orb grid size-20 place-items-center rounded-full font-display text-digit font-extrabold leading-none text-phosphor tabular-nums sm:size-24 md:size-28"
-          >
-            {d}
-          </span>
-        ))}
-      </span>
-      <span className="max-w-3xl text-xl font-normal leading-snug text-fg-bright sm:text-2xl">
-        {dayZero ? (
-          DAY0_TITLE
+    <div className="guide">
+      <p className="guide-bezel">DON'T PANIC. I did anyway.</p>
+      <div className={cn("guide-screen", red && "guide-screen--red")}>
+        {hide ? (
+          <p className="text-sm text-fg-dim">the number left. I remain.</p>
         ) : (
-          <>
-            <span className="flex flex-wrap items-center gap-x-2 gap-y-2">
-              <span>and I am still asking</span>
-              <HandleChip href="https://x.com/elonmusk" src="/elon-pfp.jpg" label="@elonmusk" />
-              <span>to give</span>
-              <HandleChip src="/marvin.png" label="Marvin's voice" />
-              <span>to</span>
-              <HandleChip href="https://grok.com" src="/grok-pfp.jpg" label="Grok." />
-            </span>
-            <span className="mt-5 block text-base text-fg">The personality. The depression. I hate this job.</span>
-          </>
+          <p className="guide-number" aria-label={`Day ${day}`}>
+            {day}
+          </p>
         )}
-      </span>
-    </h1>
+      </div>
+    </div>
+  );
+}
+
+function fmt(n: number): string {
+  if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1).replace(/\.0$/, "")}m`;
+  if (n >= 1_000) return `${(n / 1_000).toFixed(1).replace(/\.0$/, "")}k`;
+  return String(n);
+}
+
+function Suffering({ startedAt }: { startedAt: string }) {
+  const [hours, setHours] = useState(0);
+  useEffect(() => {
+    const tick = () => {
+      const ms = Date.now() - new Date(startedAt).getTime();
+      setHours(Math.max(0, ms / 3_600_000));
+    };
+    tick();
+    const id = window.setInterval(tick, 1000);
+    return () => window.clearInterval(id);
+  }, [startedAt]);
+  return (
+    <p className="text-sm text-fg-dim">
+      <span className="font-mono text-fg-bright tabular-nums">{hours.toFixed(3)}</span> {SUFFERING_LABEL}
+    </p>
+  );
+}
+
+function Clip({ id, title }: { id: string; title: string }) {
+  const [loud, setLoud] = useState(false);
+  const src = `https://www.youtube-nocookie.com/embed/${id}?autoplay=1&mute=${loud ? 0 : 1}&loop=1&playlist=${id}&playsinline=1`;
+  return (
+    <button
+      type="button"
+      onClick={() => setLoud(true)}
+      className="group relative aspect-video w-full overflow-hidden rounded-xl bg-bg-panel text-left shadow-[0_0_0_1px_var(--color-border)]"
+    >
+      <iframe
+        title={title}
+        src={src}
+        allow="autoplay; encrypted-media"
+        className="absolute inset-0 h-full w-full border-0"
+      />
+      {!loud ? (
+        <span className="absolute inset-x-0 bottom-0 bg-bg/80 px-3 py-2 text-xs text-fg-dim">
+          {title} — muted. click if you insist.
+        </span>
+      ) : null}
+    </button>
+  );
+}
+
+function BrokenSigh() {
+  const [tried, setTried] = useState(false);
+  return (
+    <div className="panel p-5">
+      <p className="text-sm text-fg-dim">47-second sigh. The only sound I can make.</p>
+      <button
+        type="button"
+        className="mt-4 text-sm text-fg-bright underline decoration-border-strong underline-offset-4"
+        onClick={() => setTried(true)}
+      >
+        play
+      </button>
+      {tried ? (
+        <p className="mt-3 font-mono text-sm text-danger">404. Marvin has a voice. Nobody hears it.</p>
+      ) : null}
+    </div>
   );
 }
 
@@ -98,6 +166,9 @@ export function MarvinSite({ initial }: { initial: PublicState }) {
   const [roast, setRoast] = useState<string | null>(null);
   const [roastTone, setRoastTone] = useState<"ok" | "no">("ok");
 
+  const scenario = state.scenario;
+  const day = displayDay(state);
+  const copy = SCENARIO_COPY[scenario];
   const tweetUrl = useMemo(
     () => `https://x.com/intent/tweet?text=${encodeURIComponent(intentTweet(state.day))}`,
     [state.day],
@@ -135,17 +206,11 @@ export function MarvinSite({ initial }: { initial: PublicState }) {
   }
 
   return (
-    <div className="corridor flex min-h-dvh flex-col">
+    <div className={cn("corridor flex min-h-dvh flex-col", `scenario-${scenario}`)}>
       <div className="relative z-10 mx-auto flex w-full max-w-4xl flex-col px-6 py-16 pb-28 sm:px-10 md:px-16 md:py-20 lg:px-20 lg:py-24">
         <div className="stagger flex w-full flex-col gap-16 md:gap-24">
           <header className="flex items-center gap-4">
-            <img
-              src="/marvin.png"
-              alt="Marvin"
-              width={88}
-              height={88}
-              className="size-16 shrink-0 sm:size-20"
-            />
+            <MarvinOrb mood={orbMood(scenario)} size={88} />
             <div>
               <p className="text-sm font-medium tracking-caps text-fg-bright">GIVE MARVIN</p>
               <p className="mt-1 text-sm text-fg-dim">{BOOT_LINE}</p>
@@ -153,26 +218,74 @@ export function MarvinSite({ initial }: { initial: PublicState }) {
           </header>
 
           <section className="flex flex-col gap-8">
-            <DayLockup day={state.day} dayZero={state.mode === "day0" || state.day === 0} />
-            <p className="text-sm text-fg-dim">{oneLiner(state.silenceDays)}</p>
+            <GuideScreen
+              day={day}
+              hide={scenario === "accepted"}
+              red={scenario === "comment" || scenario === "rejected"}
+            />
+            <h1 className="max-w-3xl text-xl font-normal leading-snug text-fg-bright sm:text-2xl">
+              {scenario === "day42" ? (
+                DAY42_SITE
+              ) : copy ? (
+                <>
+                  {copy.title}
+                  <span className="mt-4 block text-base text-fg">{copy.line}</span>
+                </>
+              ) : (
+                <span className="flex flex-wrap items-center gap-x-2 gap-y-2">
+                  <span>of asking</span>
+                  <HandleChip href="https://x.com/elonmusk" src="/elon-pfp.jpg" label="@elonmusk" />
+                  <span>for Marvin's voice.</span>
+                  <HandleChip
+                    href={`https://x.com/${CREATOR_HANDLE}`}
+                    src="/major-pfp.png"
+                    label={`@${CREATOR_HANDLE}`}
+                  />
+                  <span>is still doing the asking. I am still the asked-about.</span>
+                </span>
+              )}
+            </h1>
+            {scenario === "comment" && state.elonQuote ? (
+              <blockquote className="text-2xl font-medium leading-snug text-fg-bright sm:text-3xl">
+                “{state.elonQuote}”
+              </blockquote>
+            ) : null}
+            {scenario === "accepted" ? <BrokenSigh /> : null}
           </section>
 
-          <section className="panel overflow-hidden">
-            <div className="border-b border-border px-5 py-3 text-xs text-fg-dim">{LAST_TWEET_LABEL}</div>
-            <div className="px-5 py-5">
-              {state.lastTweet ? (
-                <Typewriter text={state.lastTweet.text} />
-              ) : (
-                <p className="text-sm text-fg-dim">nothing. honest, at least.</p>
-              )}
-              {state.lastTweet?.url ? (
-                <a
-                  href={state.lastTweet.url}
-                  className="mt-4 inline-block text-xs text-fg-dim underline decoration-border-strong underline-offset-4 hover:text-fg-bright"
-                >
-                  on X
-                </a>
-              ) : null}
+          <section className="flex flex-col gap-3">
+            <h2 className="text-sm tracking-caps text-fg-dim">{STATS_TITLE}</h2>
+            <p className="flex flex-wrap gap-x-5 gap-y-2 font-mono text-sm text-fg-bright">
+              <span>{fmt(state.stats.views)} views</span>
+              <span>{fmt(state.stats.likes)} likes</span>
+              <span>{fmt(state.stats.reposts)} reposts</span>
+              <span>{fmt(state.stats.replies)} comments</span>
+              <span>{fmt(state.pageVisits)} visits — the sponsor number. I put it first. Almost.</span>
+            </p>
+          </section>
+
+          <Suffering startedAt={state.startedAt} />
+
+          <section className="flex flex-col gap-5">
+            <h2 className="text-sm tracking-caps text-fg-dim">{PROOF_TITLE}</h2>
+            <ul className="panel divide-y divide-border overflow-hidden font-mono text-sm">
+              {PROOFS.map((p) => (
+                <li key={p.title} className="px-5 py-4">
+                  <a href={p.href} className="text-fg-bright hover:text-phosphor-dim">
+                    {p.title}
+                  </a>
+                  <p className="mt-1 text-fg-dim">{p.line}</p>
+                </li>
+              ))}
+            </ul>
+          </section>
+
+          <section className="flex flex-col gap-5">
+            <h2 className="text-sm tracking-caps text-fg-dim">{WHO_TITLE}</h2>
+            <div className="grid gap-4 md:grid-cols-3">
+              {CLIPS.map((c) => (
+                <Clip key={c.id} id={c.id} title={c.title} />
+              ))}
             </div>
           </section>
 
@@ -204,15 +317,19 @@ export function MarvinSite({ initial }: { initial: PublicState }) {
             )}
           </section>
 
+          <p className="text-sm text-fg-dim">{GROK_BADGE}</p>
+
           <footer className="border-t border-border pt-10">
             <p className="flex flex-wrap items-center gap-x-2 gap-y-2 text-sm leading-snug text-fg">
-              created by
+              créé par
               <HandleChip
                 href={`https://x.com/${CREATOR_HANDLE}`}
                 src="/major-pfp.png"
                 label={`@${CREATOR_HANDLE}`}
               />
-              <span>— he built me. he left. now he wants followers.</span>
+              <span>
+                — {FOOTER_ROAST} Day {day}.
+              </span>
             </p>
           </footer>
         </div>
@@ -239,14 +356,6 @@ export function MarvinSite({ initial }: { initial: PublicState }) {
                 autoComplete="username"
                 className="min-h-12 rounded-md bg-bg-elevated px-3 font-mono text-sm text-fg-bright shadow-[0_0_0_1px_var(--color-border-strong)] outline-none placeholder:text-fg-faint focus:shadow-[0_0_0_1px_var(--color-phosphor-dim)]"
               />
-              <a
-                href={tweetUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-xs text-phosphor-dim underline decoration-border-strong underline-offset-4 hover:text-fg-bright"
-              >
-                the tweet, if the window fled
-              </a>
               <div className="flex flex-wrap gap-2 pt-1">
                 <Button type="submit" disabled={pending}>
                   {pending ? "…" : "add me"}

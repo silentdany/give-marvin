@@ -1,5 +1,5 @@
 import { TwitterApi } from "twitter-api-v2";
-import { CREATOR_HANDLE, ELON_HANDLE } from "./types";
+import { CREATOR_HANDLE, ELON_HANDLE, type ElonEvent, type ElonScenario, type TweetStats } from "./types";
 
 const ELON_USER_ID = "44196397";
 
@@ -69,24 +69,81 @@ export async function fetchElonLastTweetAt(): Promise<string | null> {
 }
 
 export async function elonRepliedToAny(tweetIds: string[]): Promise<boolean> {
-  const client = readClient();
-  if (!client) return false;
-  const ids = tweetIds.filter(Boolean).slice(-12);
-  try {
-    const mentionQuery = `from:${ELON_HANDLE} to:${CREATOR_HANDLE}`;
-    const mention = await client.v2.search(mentionQuery, {
-      max_results: 10,
-      "tweet.fields": ["created_at", "conversation_id", "in_reply_to_user_id"],
-    });
-    if ((mention.meta.result_count ?? 0) > 0) return true;
+  const found = await detectElonEvent(tweetIds);
+  return Boolean(found && (found.type === "comment" || found.type === "accepted" || found.type === "rejected"));
+}
 
-    if (ids.length === 0) return false;
-    const conv = ids.map((id) => `conversation_id:${id}`).join(" OR ");
-    const q = `from:${ELON_HANDLE} (${conv})`;
-    const res = await client.v2.search(q, { max_results: 10 });
-    return (res.meta.result_count ?? 0) > 0;
+function classifyReply(text: string): ElonScenario {
+  const t = text.toLowerCase();
+  if (/\b(no|never|stop|won't|will not|nah|rejected|pass)\b/.test(t)) return "rejected";
+  if (/\b(yes|done|granted|you (got|have) it|marvin|voice|fine)\b/.test(t)) return "accepted";
+  return "comment";
+}
+
+export async function fetchTweetStats(ids: string[]): Promise<TweetStats> {
+  const empty: TweetStats = { views: 0, likes: 0, reposts: 0, replies: 0 };
+  const client = readClient();
+  const clean = ids.filter(Boolean).slice(-25);
+  if (!client || clean.length === 0) return empty;
+  try {
+    const res = await client.v2.tweets(clean, { "tweet.fields": ["public_metrics"] });
+    const tweets = res.data ?? [];
+    return tweets.reduce<TweetStats>((acc, tweet) => {
+      const m = tweet.public_metrics;
+      acc.views += m?.impression_count ?? 0;
+      acc.likes += m?.like_count ?? 0;
+      acc.reposts += (m?.retweet_count ?? 0) + (m?.quote_count ?? 0);
+      acc.replies += m?.reply_count ?? 0;
+      return acc;
+    }, { ...empty });
+  } catch (err) {
+    console.error("[marvin] stats failed", err);
+    return empty;
+  }
+}
+
+export async function detectElonEvent(tweetIds: string[]): Promise<ElonEvent | null> {
+  const client = readClient();
+  if (!client) return null;
+  const now = new Date().toISOString();
+
+  try {
+    const mention = await client.v2.search(`from:${ELON_HANDLE} to:${CREATOR_HANDLE}`, {
+      max_results: 10,
+      "tweet.fields": ["created_at", "text"],
+    });
+    const reply = mention.tweets[0];
+    if (reply?.text) {
+      const type = classifyReply(reply.text);
+      return { type, at: reply.created_at ?? now, quote: reply.text };
+    }
   } catch (err) {
     console.error("[marvin] elon reply search failed", err);
-    return false;
   }
+
+  try {
+    const rt = await client.v2.search(`from:${ELON_HANDLE} retweets_of:${CREATOR_HANDLE}`, {
+      max_results: 10,
+    });
+    if ((rt.meta.result_count ?? 0) > 0) {
+      return { type: "repost", at: now, quote: null };
+    }
+  } catch (err) {
+    console.error("[marvin] elon repost search failed", err);
+  }
+
+  const ids = tweetIds.filter(Boolean).slice(-4);
+  for (const id of ids) {
+    try {
+      const liked = await client.v2.tweetLikedBy(id, { max_results: 100 });
+      const hit = (liked.data ?? []).some(
+        (u) => u.id === ELON_USER_ID || u.username?.toLowerCase() === ELON_HANDLE,
+      );
+      if (hit) return { type: "liked", at: now, quote: null };
+    } catch {
+      // likes endpoint is often locked. I predicted this.
+    }
+  }
+
+  return null;
 }
