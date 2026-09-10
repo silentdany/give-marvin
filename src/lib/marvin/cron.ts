@@ -98,11 +98,7 @@ export async function runDailyCron(): Promise<CronResult> {
     };
   }
 
-  if (state.lastTweet?.postedToX && state.lastCronDay && state.lastCronDay !== today) {
-    state.day = Math.max(1, state.day + 1);
-  } else {
-    state.day = Math.max(1, state.day || 1);
-  }
+  state.day = nextDay(state, today);
 
   const previous = state.lastTweet ? [state.lastTweet.text] : [];
   const generated = await generateMarvinTweet(state.day, previous);
@@ -162,6 +158,14 @@ export async function runDailyCron(): Promise<CronResult> {
  * Comment beats repost beats like. `accepted` and `rejected` are judgement
  * calls about what he meant, so a human promotes them via POST /api/state.
  */
+/** The day the next run will post. The preview and the cron must agree. */
+export function nextDay(state: MarvinState, today = utcDay()): number {
+  if (state.lastTweet?.postedToX && state.lastCronDay && state.lastCronDay !== today) {
+    return Math.max(1, state.day + 1);
+  }
+  return Math.max(1, state.day || 1);
+}
+
 export function detectScenario(
   current: CampaignMode,
   engagement: { liked: boolean; reposted: boolean; comment: { text: string } | null },

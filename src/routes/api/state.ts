@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { getState, saveState, toPublicState } from "@/lib/marvin/store";
 import { fetchCumulativeStats } from "@/lib/marvin/x";
-import { cronAuthorized } from "@/lib/marvin/cron";
+import { cronAuthorized, nextDay } from "@/lib/marvin/cron";
 import { ELON_MODES, type CampaignMode } from "@/lib/marvin/types";
 
 /**
@@ -32,11 +32,34 @@ export const Route = createFileRoute("/api/state")({
           commentUrl?: unknown;
           day?: unknown;
           refreshStats?: unknown;
+          previewTweet?: unknown;
         } = {};
         try {
           body = (await request.json()) as typeof body;
         } catch {
           /* an empty body. the most honest request I have received. */
+        }
+
+        // Compose tomorrow's tweet without posting it or touching the state.
+        // The only way to tell whether the model key is live without burning
+        // the day and putting a real post on X.
+        if (body.previewTweet === true) {
+          const state = await getState();
+          const day = nextDay(state);
+          const { generateMarvinTweet } = await import("@/lib/marvin/grok");
+          const preview = await generateMarvinTweet(
+            day,
+            state.lastTweet ? [state.lastTweet.text] : [],
+          );
+          return Response.json({
+            ok: preview.source !== "fallback",
+            day,
+            source: preview.source,
+            characters: preview.text.length,
+            text: preview.text,
+            error: preview.error ?? null,
+            note: "nothing was posted and nothing was saved",
+          });
         }
 
         // Stats otherwise only move when the cron runs, once a day. This asks

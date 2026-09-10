@@ -9,6 +9,8 @@ type Tone = "pleading" | "resigned" | "sarcastic";
 export type GeneratedTweet = {
   text: string;
   source: "grok" | "fallback" | "hardcoded";
+  /** Why it fell back. Absent when the model actually answered. */
+  error?: string;
 };
 
 function pickTone(day: number): Tone {
@@ -128,7 +130,11 @@ Body only: no day line, no signature, no link, no hashtags. 150 characters maxim
     } else if (xai) {
       raw = await complete(XAI_URL, xai, "grok-4.5", messages);
     } else {
-      return { text: assemble(fallbackBody(day), day), source: "fallback" };
+      return {
+        text: assemble(fallbackBody(day), day),
+        source: "fallback",
+        error: "no model key: set AI_GATEWAY_API_KEY (or XAI_API_KEY) and redeploy",
+      };
     }
     const body = cleanBody(raw, day);
     return { text: assemble(body, day), source: "grok" };
@@ -138,6 +144,7 @@ Body only: no day line, no signature, no link, no hashtags. 150 characters maxim
     return {
       text: assemble(FALLBACK_BODIES[n] ?? fallbackBody(day), day),
       source: "fallback",
+      error: err instanceof Error ? err.message : String(err),
     };
   }
 }
