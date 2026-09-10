@@ -158,11 +158,11 @@
   }
 
   .orb-lid-l {
-    transform-origin: 75px 102px;
+    transform-origin: var(--orb-hinge-l);
   }
 
   .orb-lid-r {
-    transform-origin: 155px 81.5px;
+    transform-origin: var(--orb-hinge-r);
   }
 
   .orb[data-variant="reverse"] .orb-face,

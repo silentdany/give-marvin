@@ -499,7 +499,7 @@ export function MarvinSite({ initial }: { initial: PublicState }) {
       <div className="mx-auto flex w-full max-w-5xl flex-col px-6 py-14 pb-24 sm:px-10 md:px-14 md:py-20 lg:py-24">
         <div className="stagger flex w-full flex-col gap-24 md:gap-32">
           <header className="flex items-center gap-4">
-            <MarvinOrb size={64} variant={orbVariant(state.mode)} className="shrink-0" />
+            <MarvinOrb size={72} variant={orbVariant(state.mode)} className="shrink-0" />
             <div>
               <p className="text-sm font-bold tracking-caps text-fg-bright">GIVE MARVIN</p>
               <p className="mt-1 text-sm text-fg-dim">{BOOT_LINE}</p>
