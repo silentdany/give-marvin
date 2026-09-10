@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { getState } from "@/lib/marvin/store";
+import { getState, emptyStats } from "@/lib/marvin/store";
+import type { CampaignMode } from "@/lib/marvin/types";
 
 async function loadAsset(request: Request, path: string): Promise<ArrayBuffer> {
   const res = await fetch(new URL(path, request.url));
@@ -16,23 +17,25 @@ export const Route = createFileRoute("/api/og")({
           const raw = url.searchParams.get("day");
           const param = raw === null || raw === "" ? Number.NaN : Number(raw);
           const hasDay = Number.isFinite(param) && param >= 0;
-          const state = hasDay ? null : await getState();
+          // Stats and mode always come from state; `day` may be pinned by the
+          // caller so X's aggressive OG cache gets a fresh URL every post.
+          const state = await getState().catch(() => null);
           const day = hasDay ? Math.floor(param) : (state?.day ?? 1);
-          const dayZero = day === 0 || state?.mode === "day0";
+          const mode: CampaignMode = state?.mode ?? "counting";
 
-          const [fontBold, fontRegular, marvin] = await Promise.all([
+          const [fontBold, fontRegular] = await Promise.all([
             loadAsset(request, "/fonts/Nunito-ExtraBold.ttf"),
             loadAsset(request, "/fonts/Nunito-Regular.ttf"),
-            loadAsset(request, "/marvin.png"),
           ]);
 
           const { renderOgPng } = await import("@/lib/marvin/og-image");
           const png = await renderOgPng({
             day,
-            dayZero,
+            mode,
+            stats: state?.stats ?? emptyStats(),
+            visits: state?.visits ?? 0,
             fontBold,
             fontRegular,
-            marvinSrc: `data:image/png;base64,${Buffer.from(marvin).toString("base64")}`,
           });
 
           return new Response(Buffer.from(png), {

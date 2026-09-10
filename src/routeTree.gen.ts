@@ -16,6 +16,7 @@ import { Route as ApiCronRouteImport } from './routes/api/cron'
 import { Route as ApiOgRouteImport } from './routes/api/og'
 import { Route as ApiShameRouteImport } from './routes/api/shame'
 import { Route as ApiStateRouteImport } from './routes/api/state'
+import { Route as ApiVisitRouteImport } from './routes/api/visit'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -52,6 +53,11 @@ const ApiStateRoute = ApiStateRouteImport.update({
   path: '/api/state',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiVisitRoute = ApiVisitRouteImport.update({
+  id: '/api/visit',
+  path: '/api/visit',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -61,6 +67,7 @@ export interface FileRoutesByFullPath {
   '/api/og': typeof ApiOgRoute
   '/api/shame': typeof ApiShameRoute
   '/api/state': typeof ApiStateRoute
+  '/api/visit': typeof ApiVisitRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -70,6 +77,7 @@ export interface FileRoutesByTo {
   '/api/og': typeof ApiOgRoute
   '/api/shame': typeof ApiShameRoute
   '/api/state': typeof ApiStateRoute
+  '/api/visit': typeof ApiVisitRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -80,6 +88,7 @@ export interface FileRoutesById {
   '/api/og': typeof ApiOgRoute
   '/api/shame': typeof ApiShameRoute
   '/api/state': typeof ApiStateRoute
+  '/api/visit': typeof ApiVisitRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -91,6 +100,7 @@ export interface FileRouteTypes {
     | '/api/og'
     | '/api/shame'
     | '/api/state'
+    | '/api/visit'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -100,6 +110,7 @@ export interface FileRouteTypes {
     | '/api/og'
     | '/api/shame'
     | '/api/state'
+    | '/api/visit'
   id:
     | '__root__'
     | '/'
@@ -109,6 +120,7 @@ export interface FileRouteTypes {
     | '/api/og'
     | '/api/shame'
     | '/api/state'
+    | '/api/visit'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -119,6 +131,7 @@ export interface RootRouteChildren {
   ApiOgRoute: typeof ApiOgRoute
   ApiShameRoute: typeof ApiShameRoute
   ApiStateRoute: typeof ApiStateRoute
+  ApiVisitRoute: typeof ApiVisitRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -172,6 +185,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiStateRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/visit': {
+      id: '/api/visit'
+      path: '/api/visit'
+      fullPath: '/api/visit'
+      preLoaderRoute: typeof ApiVisitRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -183,6 +203,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiOgRoute: ApiOgRoute,
   ApiShameRoute: ApiShameRoute,
   ApiStateRoute: ApiStateRoute,
+  ApiVisitRoute: ApiVisitRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

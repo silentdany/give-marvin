@@ -1,6 +1,8 @@
-import { createRootRoute, HeadContent, Outlet, Scripts } from "@tanstack/react-router";
+import { createRootRoute, HeadContent, Link, Outlet, Scripts } from "@tanstack/react-router";
 import { AuthProvider } from "@/lib/auth/provider";
 import { PreviewHostBridge } from "@/components/preview-host-bridge";
+import { MarvinOrb } from "@/components/MarvinOrb";
+import { NOT_FOUND_BODY, NOT_FOUND_LINK, NOT_FOUND_TITLE } from "@/lib/marvin/copy";
 import { SITE_NAME } from "@/lib/marvin/seo";
 import appCss from "../styles.css?url";
 
@@ -10,7 +12,7 @@ export const Route = createRootRoute({
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
       { title: SITE_NAME },
-      { name: "theme-color", content: "#e8e8e6" },
+      { name: "theme-color", content: "#ffffff" },
       { name: "color-scheme", content: "light" },
     ],
     links: [
@@ -26,12 +28,13 @@ export const Route = createRootRoute({
       },
     ],
   }),
+  notFoundComponent: NotFound,
   component: () => (
     <html lang="en" className="antialiased" suppressHydrationWarning>
       <head>
         <HeadContent />
       </head>
-      <body className="bg-bg text-fg font-sans">
+      <body className="bg-bg font-sans text-fg">
         <PreviewHostBridge />
         <AuthProvider>
           <Outlet />
@@ -41,3 +44,21 @@ export const Route = createRootRoute({
     </html>
   ),
 });
+
+function NotFound() {
+  return (
+    <main className="flex min-h-dvh flex-col items-center justify-center gap-8 bg-bg px-6 text-center">
+      <MarvinOrb size={96} variant="cracked" title="404" />
+      <div className="flex flex-col gap-3">
+        <h1 className="text-2xl font-extrabold text-fg-bright sm:text-3xl">{NOT_FOUND_TITLE}</h1>
+        <p className="text-lg text-fg">{NOT_FOUND_BODY}</p>
+      </div>
+      <Link
+        to="/"
+        className="text-sm text-fg-dim underline decoration-border-strong underline-offset-4 hover:text-fg-bright"
+      >
+        {NOT_FOUND_LINK}
+      </Link>
+    </main>
+  );
+}

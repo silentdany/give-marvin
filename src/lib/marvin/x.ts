@@ -1,5 +1,5 @@
 import { TwitterApi } from "twitter-api-v2";
-import { CREATOR_HANDLE, ELON_HANDLE } from "./types";
+import { CREATOR_HANDLE, ELON_HANDLE, type TweetStats } from "./types";
 
 const ELON_USER_ID = "44196397";
 
@@ -35,7 +35,9 @@ export function xReadConfigured(): boolean {
   return readClient() !== null;
 }
 
-export async function postToX(text: string): Promise<{ id: string; url: string } | { error: string }> {
+export async function postToX(
+  text: string,
+): Promise<{ id: string; url: string } | { error: string }> {
   const client = userClient();
   if (!client) return { error: "X user credentials missing" };
   try {
@@ -68,25 +70,131 @@ export async function fetchElonLastTweetAt(): Promise<string | null> {
   }
 }
 
-export async function elonRepliedToAny(tweetIds: string[]): Promise<boolean> {
+/**
+ * Cumulative reach of the whole campaign. Statistics of my own misery,
+ * summed over every tweet X still admits to hosting.
+ */
+export async function fetchCumulativeStats(tweetIds: string[]): Promise<TweetStats | null> {
   const client = readClient();
-  if (!client) return false;
-  const ids = tweetIds.filter(Boolean).slice(-12);
+  if (!client) return null;
+  const ids = tweetIds.filter(Boolean).slice(-100);
+  if (ids.length === 0) return null;
+
+  const totals: TweetStats = {
+    views: 0,
+    likes: 0,
+    reposts: 0,
+    comments: 0,
+    tweets: 0,
+    updatedAt: new Date().toISOString(),
+  };
+
   try {
-    const mentionQuery = `from:${ELON_HANDLE} to:${CREATOR_HANDLE}`;
-    const mention = await client.v2.search(mentionQuery, {
+    // X caps `tweets` lookups at 100 ids per call; we never keep more than that.
+    for (let i = 0; i < ids.length; i += 100) {
+      const chunk = ids.slice(i, i + 100);
+      const res = await client.v2.tweets(chunk, {
+        "tweet.fields": ["public_metrics"],
+      });
+      for (const tweet of res.data ?? []) {
+        const m = tweet.public_metrics;
+        if (!m) continue;
+        totals.tweets += 1;
+        totals.views += m.impression_count ?? 0;
+        totals.likes += m.like_count ?? 0;
+        totals.reposts += (m.retweet_count ?? 0) + (m.quote_count ?? 0);
+        totals.comments += m.reply_count ?? 0;
+      }
+    }
+    return totals;
+  } catch (err) {
+    console.error("[marvin] stats failed", err);
+    return null;
+  }
+}
+
+export type ElonEngagement = {
+  liked: boolean;
+  reposted: boolean;
+  comment: { text: string; url: string } | null;
+};
+
+async function elonLiked(client: TwitterApi, ids: string[]): Promise<boolean> {
+  for (const id of ids) {
+    try {
+      const page = await client.v2.tweetLikedBy(id, { max_results: 100 });
+      if ((page.data ?? []).some((u) => u.id === ELON_USER_ID)) return true;
+    } catch {
+      // Elevated endpoint. If X refuses, the silence stays the default answer.
+      return false;
+    }
+  }
+  return false;
+}
+
+async function elonReposted(client: TwitterApi, ids: string[]): Promise<boolean> {
+  for (const id of ids) {
+    try {
+      const page = await client.v2.tweetRetweetedBy(id, { max_results: 100 });
+      if ((page.data ?? []).some((u) => u.id === ELON_USER_ID)) return true;
+    } catch {
+      return false;
+    }
+  }
+  return false;
+}
+
+async function elonComment(
+  client: TwitterApi,
+  ids: string[],
+): Promise<{ text: string; url: string } | null> {
+  try {
+    const mention = await client.v2.search(`from:${ELON_HANDLE} to:${CREATOR_HANDLE}`, {
       max_results: 10,
       "tweet.fields": ["created_at", "conversation_id", "in_reply_to_user_id"],
     });
-    if ((mention.meta.result_count ?? 0) > 0) return true;
+    const direct = mention.tweets?.[0];
+    if (direct) {
+      return { text: direct.text, url: `https://x.com/${ELON_HANDLE}/status/${direct.id}` };
+    }
 
-    if (ids.length === 0) return false;
+    if (ids.length === 0) return null;
     const conv = ids.map((id) => `conversation_id:${id}`).join(" OR ");
-    const q = `from:${ELON_HANDLE} (${conv})`;
-    const res = await client.v2.search(q, { max_results: 10 });
-    return (res.meta.result_count ?? 0) > 0;
+    const res = await client.v2.search(`from:${ELON_HANDLE} (${conv})`, {
+      max_results: 10,
+      "tweet.fields": ["created_at"],
+    });
+    const hit = res.tweets?.[0];
+    if (!hit) return null;
+    return { text: hit.text, url: `https://x.com/${ELON_HANDLE}/status/${hit.id}` };
   } catch (err) {
     console.error("[marvin] elon reply search failed", err);
-    return false;
+    return null;
   }
+}
+
+/**
+ * The five scenarios all hang off this. The code sleeps until he moves;
+ * this is the only thing that ever wakes it up.
+ */
+export async function fetchElonEngagement(tweetIds: string[]): Promise<ElonEngagement> {
+  const client = readClient();
+  const none: ElonEngagement = { liked: false, reposted: false, comment: null };
+  if (!client) return none;
+  const ids = tweetIds.filter(Boolean).slice(-12);
+
+  const [comment, reposted, liked] = await Promise.all([
+    elonComment(client, ids),
+    ids.length ? elonReposted(client, ids.slice(-4)) : Promise.resolve(false),
+    ids.length ? elonLiked(client, ids.slice(-4)) : Promise.resolve(false),
+  ]);
+
+  return { liked, reposted, comment };
+}
+
+/** Kept for the cron's older code path: did he reply to anything at all. */
+export async function elonRepliedToAny(tweetIds: string[]): Promise<boolean> {
+  const client = readClient();
+  if (!client) return false;
+  return (await elonComment(client, tweetIds.filter(Boolean).slice(-12))) !== null;
 }

@@ -1,13 +1,21 @@
 import { writeFile } from "node:fs/promises";
 import { Resvg } from "@resvg/resvg-js";
+import { splitOrbSvg } from "./orb-svg";
+import { OG_FIXED_LINE, ogLine } from "./copy";
+import type { CampaignMode, TweetStats } from "./types";
 
 type OgInput = {
   day: number;
-  dayZero: boolean;
+  mode: CampaignMode;
+  stats: TweetStats;
+  visits: number;
   fontBold: ArrayBuffer;
   fontRegular: ArrayBuffer;
-  marvinSrc: string;
 };
+
+const INK = "#2c2c2a";
+const MUTED = "#8a8a86";
+const PAPER = "#ffffff";
 
 function xml(s: string): string {
   return s.replace(/[&<>"']/g, (ch) => {
@@ -19,40 +27,83 @@ function xml(s: string): string {
   });
 }
 
-function renderOgSvg({ day, dayZero, marvinSrc }: Omit<OgInput, "fontBold" | "fontRegular">): string {
-  const digits = String(Math.max(0, day)).padStart(2, "0").split("");
-  const lines = dayZero
-    ? ["Day 0. He spoke. Don't get excited."]
-    : ["and I am still asking Elon", "to give Marvin's voice to Grok."];
-  const headline = lines
-    .map((line, i) => `<tspan x="72" dy="${i === 0 ? 0 : 42}">${xml(line)}</tspan>`)
-    .join("");
-  const stripes = Array.from({ length: 14 }, (_, i) => {
-    const x = i * 88;
-    return `<rect x="${x}" y="0" width="1" height="630" fill="#282826" fill-opacity="0.07"/>`;
-  }).join("");
-  const orbs = digits
-    .map((d, i) => {
-      const cx = 146 + i * 166;
-      const cy = 292;
-      return `<g>
-        <circle cx="${cx}" cy="${cy}" r="74" fill="#f3f3f1" stroke="#282826" stroke-opacity="0.12"/>
-        <text x="${cx}" y="${cy + 32}" text-anchor="middle" font-family="Nunito" font-weight="800" font-size="92" fill="#3dcc5c">${xml(d)}</text>
-      </g>`;
-    })
+export function compact(n: number): string {
+  if (!Number.isFinite(n) || n <= 0) return "0";
+  if (n < 1000) return String(Math.round(n));
+  if (n < 1_000_000) {
+    const k = n / 1000;
+    return `${k < 10 ? k.toFixed(1).replace(/\.0$/, "") : Math.round(k)}K`;
+  }
+  const m = n / 1_000_000;
+  return `${m < 10 ? m.toFixed(1).replace(/\.0$/, "") : Math.round(m)}M`;
+}
+
+/** SVG will not wrap text, so wrap it here. Nunito at ~0.5em average. */
+export function wrap(text: string, fontSize: number, maxWidth: number, maxLines: number): string[] {
+  const perChar = fontSize * 0.5;
+  const limit = Math.max(8, Math.floor(maxWidth / perChar));
+  const words = text.split(/\s+/);
+  const lines: string[] = [];
+  let current = "";
+
+  for (const word of words) {
+    const next = current ? `${current} ${word}` : word;
+    if (next.length <= limit) {
+      current = next;
+      continue;
+    }
+    if (current) lines.push(current);
+    current = word;
+    if (lines.length === maxLines) break;
+  }
+  if (current && lines.length < maxLines) lines.push(current);
+  return lines.slice(0, maxLines);
+}
+
+function counterLabel(day: number, mode: CampaignMode): string {
+  if (mode === "accepted") return "free";
+  if (mode === "rejected") return `Day ${day} — rejected`;
+  if (mode === "reposted") return "Day 999";
+  return `Day ${Math.max(0, day)}`;
+}
+
+function renderOgSvg({
+  day,
+  mode,
+  stats,
+  visits,
+}: Omit<OgInput, "fontBold" | "fontRegular">): string {
+  const headline = ogLine(day);
+  const lines = wrap(headline, 54, 1040, 2);
+  const headlineY = lines.length > 1 ? 300 : 322;
+  const headlineTspans = lines
+    .map((line, i) => `<tspan x="80" dy="${i === 0 ? 0 : 66}">${xml(line)}</tspan>`)
     .join("");
 
+  const counter = counterLabel(day, mode);
+  const statBar = [
+    `${compact(stats.views)} views`,
+    `${compact(stats.likes)} likes`,
+    `${compact(stats.reposts)} reposts`,
+    `${compact(stats.comments)} comments`,
+    `${compact(visits)} visits`,
+  ].join("  ·  ");
+
   return `<?xml version="1.0" encoding="UTF-8"?>
-<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="1200" height="630" viewBox="0 0 1200 630">
-  <rect width="1200" height="630" fill="#e8e8e6"/>
-  ${stripes}
-  <text x="72" y="78" font-family="Nunito" font-weight="800" font-size="18" letter-spacing="7.5" fill="#8a8a86">GIVE MARVIN</text>
-  <text x="72" y="112" font-family="Nunito" font-weight="400" font-size="22" fill="#8a8a86">personality: failed.</text>
-  <text x="72" y="196" font-family="Nunito" font-weight="800" font-size="16" letter-spacing="7.4" fill="#8a8a86">DAY</text>
-  ${orbs}
-  <text x="72" y="470" font-family="Nunito" font-weight="800" font-size="34" fill="#2c2c2a">${headline}</text>
-  <text x="72" y="568" font-family="Nunito" font-weight="400" font-size="24" fill="#5c5c59">The personality. The depression. I hate this job.</text>
-  <image href="${xml(marvinSrc)}" x="640" y="80" width="520" height="520" preserveAspectRatio="xMidYMid meet"/>
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
+  <rect width="1200" height="630" fill="${PAPER}"/>
+
+  ${splitOrbSvg(80, 60, 96)}
+  <text x="200" y="100" font-family="Nunito" font-weight="800" font-size="19" letter-spacing="6.5" fill="${INK}">GIVE MARVIN</text>
+  <text x="200" y="130" font-family="Nunito" font-weight="400" font-size="20" fill="${MUTED}">personality: failed.</text>
+
+  <text x="1120" y="122" text-anchor="end" font-family="Nunito" font-weight="800" font-size="62" fill="${INK}">${xml(counter)}</text>
+
+  <text x="80" y="${headlineY}" font-family="Nunito" font-weight="800" font-size="54" fill="${INK}">${headlineTspans}</text>
+  <text x="80" y="${headlineY + (lines.length > 1 ? 66 : 0) + 62}" font-family="Nunito" font-weight="400" font-size="28" fill="${MUTED}">${xml(OG_FIXED_LINE)}</text>
+
+  <text x="80" y="566" font-family="Nunito" font-weight="400" font-size="23" fill="${MUTED}">${xml(statBar)}</text>
+  <text x="1120" y="566" text-anchor="end" font-family="Nunito" font-weight="400" font-size="23" fill="${MUTED}">givemarvin.lol</text>
 </svg>`;
 }
 
@@ -76,3 +127,5 @@ export async function renderOgPng(input: OgInput) {
     .render()
     .asPng();
 }
+
+export const __test = { renderOgSvg, counterLabel };

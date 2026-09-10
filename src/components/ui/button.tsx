@@ -7,13 +7,12 @@ const buttonVariants = cva(
   {
     variants: {
       variant: {
-        primary:
-          "bg-bg-elevated text-fg-bright shadow-[0_0_0_1px_var(--color-fg-bright)] hover:bg-fg-bright hover:text-bg-elevated",
+        primary: "bg-fg-bright text-bg hover:bg-fg font-semibold",
         ghost: "text-fg-dim hover:text-fg-bright rounded-none px-0",
       },
       size: {
-        default: "min-h-12 px-5 py-3 text-sm rounded-md",
-        lg: "min-h-14 px-6 py-4 text-base rounded-md",
+        default: "min-h-12 px-5 py-3 text-sm rounded-xl",
+        lg: "min-h-14 px-8 py-4 text-base rounded-xl",
       },
     },
     defaultVariants: {
@@ -23,8 +22,7 @@ const buttonVariants = cva(
   },
 );
 
-type ButtonProps = ButtonHTMLAttributes<HTMLButtonElement> &
-  VariantProps<typeof buttonVariants>;
+type ButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & VariantProps<typeof buttonVariants>;
 
 export function Button({ className, variant, size, ...props }: ButtonProps) {
   return <button className={cn(buttonVariants({ variant, size }), className)} {...props} />;
