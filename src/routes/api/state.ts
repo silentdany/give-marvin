@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { getState, saveState, toPublicState } from "@/lib/marvin/store";
 import { fetchCumulativeStats } from "@/lib/marvin/x";
-import { cronAuthorized, nextDay } from "@/lib/marvin/cron";
+import { cronAuthorized, upcomingDay } from "@/lib/marvin/cron";
 import { ELON_MODES, type CampaignMode } from "@/lib/marvin/types";
 
 /**
@@ -45,7 +45,7 @@ export const Route = createFileRoute("/api/state")({
         // the day and putting a real post on X.
         if (body.previewTweet === true) {
           const state = await getState();
-          const day = nextDay(state);
+          const day = upcomingDay(state);
           const { generateMarvinTweet } = await import("@/lib/marvin/grok");
           const preview = await generateMarvinTweet(
             day,

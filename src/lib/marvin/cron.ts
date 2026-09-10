@@ -158,12 +158,27 @@ export async function runDailyCron(): Promise<CronResult> {
  * Comment beats repost beats like. `accepted` and `rejected` are judgement
  * calls about what he meant, so a human promotes them via POST /api/state.
  */
-/** The day the next run will post. The preview and the cron must agree. */
+/** The day a run happening on `today` would post. Used by the cron itself. */
 export function nextDay(state: MarvinState, today = utcDay()): number {
   if (state.lastTweet?.postedToX && state.lastCronDay && state.lastCronDay !== today) {
     return Math.max(1, state.day + 1);
   }
   return Math.max(1, state.day || 1);
+}
+
+/**
+ * The day the next tweet that actually goes out will carry.
+ *
+ * Not the same question as `nextDay(state, today)`: once today's run has
+ * posted, a run today would be skipped, so the next real post is tomorrow's.
+ * Asking `nextDay` for today in that window answers with the day already on X.
+ */
+export function upcomingDay(state: MarvinState, now = new Date()): number {
+  const today = utcDay(now);
+  const postedToday = state.lastCronDay === today && Boolean(state.lastTweet?.postedToX);
+  if (!postedToday) return nextDay(state, today);
+  const tomorrow = utcDay(new Date(now.getTime() + 86_400_000));
+  return nextDay(state, tomorrow);
 }
 
 export function detectScenario(
