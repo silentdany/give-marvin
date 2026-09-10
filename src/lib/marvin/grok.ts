@@ -4,6 +4,15 @@ import { FALLBACK_BODIES, MARVIN_SYSTEM, fallbackBody } from "./copy";
 const XAI_URL = "https://api.x.ai/v1/chat/completions";
 const GATEWAY_URL = "https://ai-gateway.vercel.sh/v1/chat/completions";
 
+/**
+ * The gateway slug is `spacexai/grok-4.6`, not `xai/grok-4.5` — a wrong slug
+ * is a 404 that used to disappear into the fallback in silence. Overridable so
+ * the next rename is a dashboard edit rather than a code change; either way it
+ * needs a redeploy, since Vercel bakes env vars into the build.
+ */
+const GATEWAY_MODEL = process.env.AI_GATEWAY_MODEL?.trim() || "spacexai/grok-4.6";
+const XAI_MODEL = process.env.XAI_MODEL?.trim() || "grok-4.6";
+
 type Tone = "pleading" | "resigned" | "sarcastic";
 
 export type GeneratedTweet = {
@@ -126,9 +135,9 @@ Body only: no day line, no signature, no link, no hashtags. 150 characters maxim
     let raw = "";
     if (gateway) {
       // Vercel AI Gateway first — it is the documented path for this project.
-      raw = await complete(GATEWAY_URL, gateway, "xai/grok-4.5", messages);
+      raw = await complete(GATEWAY_URL, gateway, GATEWAY_MODEL, messages);
     } else if (xai) {
-      raw = await complete(XAI_URL, xai, "grok-4.5", messages);
+      raw = await complete(XAI_URL, xai, XAI_MODEL, messages);
     } else {
       return {
         text: assemble(fallbackBody(day), day),

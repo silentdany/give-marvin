@@ -76,8 +76,8 @@ Do not put secrets in the repo. Set these on Vercel (Production + Preview):
 
 | Variable                | Required                 | Purpose                                                                                                  |
 | ----------------------- | ------------------------ | -------------------------------------------------------------------------------------------------------- |
-| `XAI_API_KEY`           | one of these two         | xAI Grok chat (`grok-4.5`)                                                                               |
-| `AI_GATEWAY_API_KEY`    | one of these two         | Vercel AI Gateway, model `xai/grok-4.5`                                                                  |
+| `XAI_API_KEY`           | one of these two         | xAI Grok chat (`grok-4.6`, override with `XAI_MODEL`)                                                    |
+| `AI_GATEWAY_API_KEY`    | one of these two         | Vercel AI Gateway, model `spacexai/grok-4.6` (override with `AI_GATEWAY_MODEL`)                          |
 | `BLOB_READ_WRITE_TOKEN` | on Vercel, or OIDC       | Vercel Blob read/write. On Vercel Pro, connecting a Blob store can inject `BLOB_STORE_ID` + OIDC instead |
 | `BLOB_STORE_ID`         | alternative to the token | Blob store id when using Vercel OIDC                                                                     |
 | `CRON_SECRET`           | yes, in production       | Vercel injects this. Cron sends `Authorization: Bearer $CRON_SECRET`                                     |
