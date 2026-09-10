@@ -139,20 +139,22 @@ export type MarvinVideo = {
 
 export const MARVIN_VIDEOS: MarvinVideo[] = [
   {
-    id: "p9V3GNXgslI",
-    title: "Marvin, first scene",
+    id: "Eh-W8QDVA9s",
+    title: "The voice, in one sitting",
     caption:
-      "Alan Rickman's voice, doing the only thing it was ever going to do. This is what we are asking for.",
+      "Alan Rickman doing the only thing that voice was ever going to do. This is the thing we are asking for.",
   },
   {
     id: "qYCfVOEWECg",
     title: "All of it, back to back",
-    caption:
-      "Every line, one after another. Nine minutes is roughly how long the enthusiasm lasts.",
+    caption: "Every line, one after another. That is roughly how long the enthusiasm lasts.",
   },
 ];
 
 export const VIDEO_PLAY_HINT = "click for sound";
+
+/** Third-party embeds rot. When one does, the card should still go somewhere. */
+export const VIDEO_FALLBACK = "if this one has died, it is on YouTube";
 
 /* --- hall of shame ---------------------------------------------------- */
 

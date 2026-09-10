@@ -38,6 +38,7 @@ import {
   SUFFERING_UNIT,
   VIDEOS_HINT,
   VIDEOS_TITLE,
+  VIDEO_FALLBACK,
   VIDEO_PLAY_HINT,
   PROOF_TITLE,
   footerLine,
@@ -417,6 +418,16 @@ function VideoCard({ id, title, caption }: { id: string; title: string; caption:
       <figcaption className="flex flex-col gap-1.5">
         <span className="text-base font-bold text-fg-bright">{title}</span>
         <span className="text-sm leading-normal text-fg-dim">{caption}</span>
+        {/* An embed that has been taken down shows YouTube's own error and
+            nothing else. This keeps the card useful when that happens. */}
+        <a
+          href={`https://www.youtube.com/watch?v=${id}`}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="mt-1 text-xs text-fg-faint underline decoration-border-strong underline-offset-4 hover:text-phosphor-dim"
+        >
+          {VIDEO_FALLBACK} ↗
+        </a>
       </figcaption>
     </figure>
   );
