@@ -1,7 +1,7 @@
 # Moving the series from @MajorBaguette to @GiveMarvinBot
 
-Days 1–32 were posted from **@MajorBaguette**. They stay there and are frozen in
-`src/data/archive-majorbaguette.json` (shown at `/chronologie`). From **Day 33**
+Days 1–33 were posted from **@MajorBaguette**. They stay there and are frozen in
+`src/data/archive-majorbaguette.json` (shown at `/chronologie`). From **Day 34**
 the cron posts from **@GiveMarvinBot**.
 
 The posting account is **@GiveMarvinBot** (X user id `2109269638257238018`).
@@ -100,3 +100,17 @@ old version for CVE-2026-102989), trigger a Production deploy of `main`
   `state.tweetIds` (deduplicated, chunked by 100). Lookups by id don't care
   which account posted, so @MajorBaguette tweets keep counting.
 - Elon reply detection searches `to:GiveMarvinBot OR to:MajorBaguette`.
+
+## Update 2026-10-11: Day 33 went out from @MajorBaguette
+
+The cron ran at 11:00 UTC (13:00 Paris) on 2026-10-11, before PR #1 was
+deployed, so Day 33 was posted by the old code from @MajorBaguette
+(<https://x.com/MajorBaguette/status/2109237714142773413>). The Blob state
+recorded it (`day: 33`, `lastTweet.postedToX: true`, `lastCronDay: 2026-10-11`),
+so the next run (2026-10-12 11:00 UTC) posts **Day 34** from @GiveMarvinBot.
+
+Day 33 was added to the frozen archive and `ARCHIVE_LAST_DAY` is now 33, so
+`nextDay()` never returns less than 34 while counting: Day 33 cannot be
+re-posted even if the state is lost. The verification and "why it's safe" notes
+above that mention Day 32/33 describe the original plan; read them shifted by
+one day.
