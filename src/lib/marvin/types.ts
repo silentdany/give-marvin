@@ -1,4 +1,7 @@
+/** The human who built this. Credited, never the poster since Day 33. */
 export const CREATOR_HANDLE = "MajorBaguette";
+/** The account that posts the series from Day 33 on. Days 1-32 stay on @MajorBaguette. */
+export const POSTING_HANDLE = "GiveMarvin";
 export const ELON_HANDLE = "elonmusk";
 export const SITE_HOST = "givemarvin.lol";
 export const SITE_LINK = "https://givemarvin.lol";

@@ -2,6 +2,8 @@ import { ANSWER_DAY, SITE_HOST, type CampaignMode, type PublicState } from "./ty
 
 export const SITE_NAME = "GIVE MARVIN";
 export const CREATOR_X = "MajorBaguette";
+/** The account posting the series (Day 33+). */
+export const POSTER_X = "GiveMarvin";
 export const DEFAULT_DESCRIPTION =
   "Day n of asking @elonmusk to give Grok the voice and personality of Marvin, the paranoid android from The Hitchhiker's Guide to the Galaxy.";
 
@@ -83,6 +85,12 @@ export function jsonLd(state: Pick<PublicState, "day" | "mode">, origin: string)
           url: `https://x.com/${CREATOR_X}`,
           sameAs: [`https://x.com/${CREATOR_X}`, "https://github.com/silentdany"],
         },
+        publisher: {
+          "@type": "Organization",
+          name: SITE_NAME,
+          alternateName: `@${POSTER_X}`,
+          url: `https://x.com/${POSTER_X}`,
+        },
       },
       {
         "@type": "WebPage",
@@ -133,7 +141,7 @@ export function seoHead(state: Pick<PublicState, "day" | "mode">) {
         content: `Day ${state.day} of asking @elonmusk to give Grok the voice of Marvin`,
       },
       { name: "twitter:card", content: "summary_large_image" },
-      { name: "twitter:site", content: `@${CREATOR_X}` },
+      { name: "twitter:site", content: `@${POSTER_X}` },
       { name: "twitter:creator", content: `@${CREATOR_X}` },
       { name: "twitter:title", content: title },
       { name: "twitter:description", content: description },

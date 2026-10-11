@@ -7,6 +7,7 @@ import {
   postToX,
   xPostConfigured,
 } from "./x";
+import { ARCHIVE_LAST_DAY } from "./archive";
 import { ANSWER_DAY, type CampaignMode, type MarvinState, type StoredTweet } from "./types";
 
 function utcDay(d = new Date()): string {
@@ -160,10 +161,14 @@ export async function runDailyCron(): Promise<CronResult> {
  */
 /** The day a run happening on `today` would post. Used by the cron itself. */
 export function nextDay(state: MarvinState, today = utcDay()): number {
-  if (state.lastTweet?.postedToX && state.lastCronDay && state.lastCronDay !== today) {
-    return Math.max(1, state.day + 1);
-  }
-  return Math.max(1, state.day || 1);
+  const raw =
+    state.lastTweet?.postedToX && state.lastCronDay && state.lastCronDay !== today
+      ? state.day + 1
+      : state.day || 1;
+  // Days 1..ARCHIVE_LAST_DAY are already on X (@MajorBaguette). While counting,
+  // a lost or reset state must never re-post them: the floor is the next day.
+  const floor = state.mode === "counting" ? ARCHIVE_LAST_DAY + 1 : 1;
+  return Math.max(floor, raw);
 }
 
 /**
