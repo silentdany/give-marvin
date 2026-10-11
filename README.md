@@ -6,7 +6,7 @@ Everything is a joke. Every label is a joke. There are five ways this ends, and 
 
 Site: [givemarvin.lol](https://givemarvin.lol) · chronology: [givemarvin.lol/chronologie](https://givemarvin.lol/chronologie)
 
-Days 1–32 were posted from @MajorBaguette and stay there, frozen in `src/data/archive-majorbaguette.json`. From Day 33 the series continues from @GiveMarvinBot. See [docs/MIGRATION-GIVEMARVIN.md](docs/MIGRATION-GIVEMARVIN.md).
+Days 1–33 were posted from @MajorBaguette and stay there, frozen in `src/data/archive-majorbaguette.json`. From Day 34 the series continues from @GiveMarvinBot. See [docs/MIGRATION-GIVEMARVIN.md](docs/MIGRATION-GIVEMARVIN.md).
 
 No monetization. This is art, not a SaaS. I have a brain the size of a planet and this is the assigned task.
 
@@ -15,10 +15,10 @@ No monetization. This is art, not a SaaS. I have a brain the size of a planet an
 Daily at **11:00 UTC** (noon in Paris — Elon's burger window):
 
 1. Read the day number from Vercel Blob (`marvin-state.json`, default 1)
-2. Refresh the cumulative tweet stats (views, likes, reposts, comments) from the X API — the 32 archived @MajorBaguette ids are always included, looked up by id
+2. Refresh the cumulative tweet stats (views, likes, reposts, comments) from the X API — the 33 archived @MajorBaguette ids are always included, looked up by id
 3. Check whether Elon moved — a reply, a repost or a like on any stored tweet
 4. Ask Grok (Vercel AI Gateway, or xAI directly) for a fresh Marvin tweet body
-5. Post it on X from `@GiveMarvinBot` and increment the day (never below Day 33 while counting: days 1–32 are already on X)
+5. Post it on X from `@GiveMarvinBot` and increment the day (never below Day 34 while counting: days 1–33 are already on X)
 
 Tweet shape (English only — Elon does not owe us a translation). No signature: the
 tweet is clean, and it ends with the site link.
@@ -106,7 +106,7 @@ Idempotent for the UTC day. If X posting fails, the day is **not** incremented s
 | Path                  | Role                                                                                                              |
 | --------------------- | ----------------------------------------------------------------------------------------------------------------- |
 | `/`                   | The site                                                                                                          |
-| `/chronologie`        | Every day: frozen Days 1–32 (@MajorBaguette, with metrics) + Day 33 onward (@GiveMarvinBot)                       |
+| `/chronologie`        | Every day: frozen Days 1–33 (@MajorBaguette, with metrics) + Day 34 onward (@GiveMarvinBot)                       |
 | `GET /api/state`      | Public JSON: counter, last tweet, stats, visits, Hall of Shame                                                    |
 | `POST /api/state`     | Set an Elon scenario. `Authorization: Bearer $CRON_SECRET`                                                        |
 | `POST /api/visit`     | Page-visit counter, one per browser session                                                                       |
@@ -187,9 +187,9 @@ nudge `SCREEN` at the top of `src/components/GuideComputer.tsx`.
 The favicon and the OG card are generated from the drawn geometry either way, since
 Satori and resvg cannot read a webp off the filesystem at render time.
 
-## Archive of Days 1–32
+## Archive of Days 1–33
 
-`src/data/archive-majorbaguette.json` is a committed snapshot (text, date, id, url, views, likes, reposts, replies) of the 32 posts on @MajorBaguette. Refresh the numbers with:
+`src/data/archive-majorbaguette.json` is a committed snapshot (text, date, id, url, views, likes, reposts, replies) of the 33 posts on @MajorBaguette. Refresh the numbers with:
 
 ```
 X_BEARER_TOKEN=... node scripts/snapshot-archive.mjs

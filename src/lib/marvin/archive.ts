@@ -1,7 +1,7 @@
 import archive from "@/data/archive-majorbaguette.json";
 
 /**
- * Days 1-32 were posted from @MajorBaguette before the series moved to
+ * Days 1-33 were posted from @MajorBaguette before the series moved to
  * @GiveMarvinBot. Frozen snapshot, committed; refreshed only by
  * `scripts/snapshot-archive.mjs`.
  */
@@ -30,4 +30,4 @@ export const ARCHIVE_ACCOUNT = ARCHIVE.account;
 export const ARCHIVE_TWEETS: ArchivedTweet[] = [...ARCHIVE.tweets].sort((a, b) => a.day - b.day);
 export const ARCHIVE_TWEET_IDS: string[] = ARCHIVE_TWEETS.map((t) => t.id).filter(Boolean);
 /** Last day posted from the old account. The cron continues at this + 1. */
-export const ARCHIVE_LAST_DAY = 32;
+export const ARCHIVE_LAST_DAY = 33;

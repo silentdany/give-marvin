@@ -7,11 +7,11 @@ const archive = JSON.parse(
   readFileSync(new URL("../src/data/archive-majorbaguette.json", import.meta.url), "utf8"),
 );
 
-test("archive holds days 1-32 from @MajorBaguette, in order, with metrics", () => {
+test("archive holds days 1-33 from @MajorBaguette, in order, with metrics", () => {
   assert.equal(archive.account, "MajorBaguette");
   assert.deepEqual(
     archive.tweets.map((t) => t.day),
-    Array.from({ length: 32 }, (_, i) => i + 1),
+    Array.from({ length: 33 }, (_, i) => i + 1),
   );
   for (const t of archive.tweets) {
     assert.match(t.id, /^\d+$/);
@@ -19,7 +19,7 @@ test("archive holds days 1-32 from @MajorBaguette, in order, with metrics", () =
     assert.ok(t.text.startsWith(`Day ${t.day} of asking @elonmusk`));
     assert.equal(typeof t.views, "number");
   }
-  assert.equal(new Set(archive.tweets.map((t) => t.id)).size, 32);
+  assert.equal(new Set(archive.tweets.map((t) => t.id)).size, 33);
 });
 
 test("applyMetrics only touches metrics", () => {
