@@ -1,3 +1,4 @@
+import { ARCHIVE_LAST_DAY } from "@/lib/marvin/archive";
 import { useCallback, useEffect, useMemo, useRef, useState, type FormEvent } from "react";
 import * as Dialog from "@radix-ui/react-dialog";
 import { Button } from "@/components/ui/button";
@@ -49,6 +50,7 @@ import {
 import {
   ANSWER_DAY,
   CREATOR_HANDLE,
+  POSTING_HANDLE,
   type CampaignMode,
   type PublicState,
   type ShameResult,
@@ -195,9 +197,9 @@ function Hero({ state }: { state: PublicState }) {
         {/* Who is asking whom, for what, on which product. Before any joke. */}
         <h1 className="flex flex-wrap items-center justify-center gap-x-3 gap-y-3 text-center text-2xl leading-snug font-bold text-fg-bright sm:text-3xl">
           <HandleChip
-            href={`https://x.com/${CREATOR_HANDLE}`}
-            src="/major-pfp.png"
-            label={`@${CREATOR_HANDLE}`}
+            href={`https://x.com/${POSTING_HANDLE}`}
+            src="/marvin-orb.webp"
+            label={`@${POSTING_HANDLE}`}
           />
           <span className="font-normal text-fg">{ASK.lead}</span>
           <HandleChip href="https://x.com/elonmusk" src="/elon-pfp.jpg" label="@elonmusk" />
@@ -611,6 +613,16 @@ export function MarvinSite({ initial }: { initial: PublicState }) {
               ) : null}
             </div>
             <p className="max-w-2xl text-xs text-fg-dim">{GROK_BADGE}</p>
+            <p className="max-w-2xl text-xs text-fg-dim">
+              Days 1–{ARCHIVE_LAST_DAY} were posted from @{CREATOR_HANDLE}. Day{" "}
+              {ARCHIVE_LAST_DAY + 1} onward: @{POSTING_HANDLE}.{" "}
+              <a
+                href="/chronologie"
+                className="underline decoration-border-strong underline-offset-4 hover:text-fg-bright"
+              >
+                the full chronology ↗
+              </a>
+            </p>
           </section>
 
           <footer className="flex flex-col items-center gap-6 border-t border-border pt-16 text-center">

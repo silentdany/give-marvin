@@ -1,8 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import {
-  CREATOR_HANDLE,
-  type ShameResult,
-} from "@/lib/marvin/types";
+import { CREATOR_HANDLE, POSTING_HANDLE, type ShameResult } from "@/lib/marvin/types";
 import {
   getState,
   normalizeHandle,
@@ -39,7 +36,9 @@ export const Route = createFileRoute("/api/shame")({
           return Response.json(result, { status: 400 });
         }
 
-        if (handle.toLowerCase() === CREATOR_HANDLE.toLowerCase()) {
+        if (
+          [CREATOR_HANDLE, POSTING_HANDLE].some((h) => h.toLowerCase() === handle.toLowerCase())
+        ) {
           const result: ShameResult = {
             ok: false,
             error: "creator",

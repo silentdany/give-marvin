@@ -1,10 +1,12 @@
 # GIVE MARVIN
 
-A daily bot that posts from [@MajorBaguette](https://x.com/MajorBaguette) asking [@elonmusk](https://x.com/elonmusk) to **GIVE MARVIN** — Marvin's voice and personality, from _The Hitchhiker's Guide to the Galaxy_.
+A daily bot that posts from [@GiveMarvinBot](https://x.com/GiveMarvinBot) (managed by [@MajorBaguette](https://x.com/MajorBaguette)) asking [@elonmusk](https://x.com/elonmusk) to **GIVE MARVIN** — Marvin's voice and personality, from _The Hitchhiker's Guide to the Galaxy_.
 
 Everything is a joke. Every label is a joke. There are five ways this ends, and Marvin does not deserve any of them.
 
-Site: [givemarvin.lol](https://givemarvin.lol)
+Site: [givemarvin.lol](https://givemarvin.lol) · chronology: [givemarvin.lol/chronologie](https://givemarvin.lol/chronologie)
+
+Days 1–32 were posted from @MajorBaguette and stay there, frozen in `src/data/archive-majorbaguette.json`. From Day 33 the series continues from @GiveMarvinBot. See [docs/MIGRATION-GIVEMARVIN.md](docs/MIGRATION-GIVEMARVIN.md).
 
 No monetization. This is art, not a SaaS. I have a brain the size of a planet and this is the assigned task.
 
@@ -13,10 +15,10 @@ No monetization. This is art, not a SaaS. I have a brain the size of a planet an
 Daily at **11:00 UTC** (noon in Paris — Elon's burger window):
 
 1. Read the day number from Vercel Blob (`marvin-state.json`, default 1)
-2. Refresh the cumulative tweet stats (views, likes, reposts, comments) from the X API
+2. Refresh the cumulative tweet stats (views, likes, reposts, comments) from the X API — the 32 archived @MajorBaguette ids are always included, looked up by id
 3. Check whether Elon moved — a reply, a repost or a like on any stored tweet
 4. Ask Grok (Vercel AI Gateway, or xAI directly) for a fresh Marvin tweet body
-5. Post it on X from `@MajorBaguette` and increment the day
+5. Post it on X from `@GiveMarvinBot` and increment the day (never below Day 33 while counting: days 1–32 are already on X)
 
 Tweet shape (English only — Elon does not owe us a translation). No signature: the
 tweet is clean, and it ends with the site link.
@@ -65,7 +67,7 @@ TanStack Start + TypeScript, deployed to Vercel. Cron, Blob, Grok and the X API 
 - **Grok** via `XAI_API_KEY` (`https://api.x.ai`) or Vercel AI Gateway (`AI_GATEWAY_API_KEY`)
 - **Vercel Blob** for the day counter and Hall of Shame (the Vercel filesystem is read-only)
 - **Vercel Cron** (Pro) `0 11 * * *`
-- **X API** pay-per-use, OAuth 1.0a user context of `@MajorBaguette` — no separate bot account
+- **X API** pay-per-use, OAuth 1.0a user context of the `@GiveMarvinBot` bot account (same X app as before)
 - No database. No extra paid add-ons.
 
 Local preview without Blob/X keys stores state in `/tmp/give-marvin-state.json` and still renders the whole joke.
@@ -83,8 +85,8 @@ Do not put secrets in the repo. Set these on Vercel (Production + Preview):
 | `CRON_SECRET`           | yes, in production       | Vercel injects this. Cron sends `Authorization: Bearer $CRON_SECRET`                                     |
 | `X_API_KEY`             | to actually post         | X app key (OAuth 1.0a)                                                                                   |
 | `X_API_SECRET`          | to actually post         | X app secret                                                                                             |
-| `X_ACCESS_TOKEN`        | to actually post         | User access token of **@MajorBaguette**                                                                  |
-| `X_ACCESS_SECRET`       | to actually post         | User access secret of **@MajorBaguette**                                                                 |
+| `X_ACCESS_TOKEN`        | to actually post         | User access token of **@GiveMarvinBot**                                                                  |
+| `X_ACCESS_SECRET`       | to actually post         | User access secret of **@GiveMarvinBot**                                                                 |
 | `X_BEARER_TOKEN`        | optional                 | App-only bearer, used to read Elon's last post / replies if user tokens are missing                      |
 
 Aliases accepted: `TWITTER_API_KEY`, `TWITTER_API_SECRET`, `TWITTER_ACCESS_TOKEN`, `TWITTER_ACCESS_SECRET`, `TWITTER_BEARER_TOKEN`.
@@ -101,15 +103,16 @@ Idempotent for the UTC day. If X posting fails, the day is **not** incremented s
 
 ## Routes
 
-| Path                  | Role                                                                                         |
-| --------------------- | -------------------------------------------------------------------------------------------- |
-| `/`                   | The site                                                                                     |
-| `GET /api/state`      | Public JSON: counter, last tweet, stats, visits, Hall of Shame                               |
-| `POST /api/state`     | Set an Elon scenario. `Authorization: Bearer $CRON_SECRET`                                   |
-| `POST /api/visit`     | Page-visit counter, one per browser session                                                  |
-| `GET /api/og`         | The share card, 1200×630. `?day=N` pins the number so X's OG cache sees a new URL every post |
-| `POST /api/shame`     | `{ "handle": "someone" }` — max 1 click per handle per UTC day. `@MajorBaguette` is refused  |
-| `GET\|POST /api/cron` | Daily job                                                                                    |
+| Path                  | Role                                                                                                              |
+| --------------------- | ----------------------------------------------------------------------------------------------------------------- |
+| `/`                   | The site                                                                                                          |
+| `/chronologie`        | Every day: frozen Days 1–32 (@MajorBaguette, with metrics) + Day 33 onward (@GiveMarvinBot)                       |
+| `GET /api/state`      | Public JSON: counter, last tweet, stats, visits, Hall of Shame                                                    |
+| `POST /api/state`     | Set an Elon scenario. `Authorization: Bearer $CRON_SECRET`                                                        |
+| `POST /api/visit`     | Page-visit counter, one per browser session                                                                       |
+| `GET /api/og`         | The share card, 1200×630. `?day=N` pins the number so X's OG cache sees a new URL every post                      |
+| `POST /api/shame`     | `{ "handle": "someone" }` — max 1 click per handle per UTC day. `@MajorBaguette` and `@GiveMarvinBot` are refused |
+| `GET\|POST /api/cron` | Daily job                                                                                                         |
 
 ## Hall of Shame
 
@@ -183,3 +186,11 @@ nudge `SCREEN` at the top of `src/components/GuideComputer.tsx`.
 
 The favicon and the OG card are generated from the drawn geometry either way, since
 Satori and resvg cannot read a webp off the filesystem at render time.
+
+## Archive of Days 1–32
+
+`src/data/archive-majorbaguette.json` is a committed snapshot (text, date, id, url, views, likes, reposts, replies) of the 32 posts on @MajorBaguette. Refresh the numbers with:
+
+```
+X_BEARER_TOKEN=... node scripts/snapshot-archive.mjs
+```

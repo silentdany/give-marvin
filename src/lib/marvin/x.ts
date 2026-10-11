@@ -1,5 +1,6 @@
 import { TwitterApi } from "twitter-api-v2";
-import { CREATOR_HANDLE, ELON_HANDLE, type TweetStats } from "./types";
+import { ARCHIVE_TWEET_IDS } from "./archive";
+import { CREATOR_HANDLE, ELON_HANDLE, POSTING_HANDLE, type TweetStats } from "./types";
 
 const ELON_USER_ID = "44196397";
 
@@ -44,7 +45,7 @@ export async function postToX(
     const { data } = await client.v2.tweet(text);
     return {
       id: data.id,
-      url: `https://x.com/${CREATOR_HANDLE}/status/${data.id}`,
+      url: `https://x.com/${POSTING_HANDLE}/status/${data.id}`,
     };
   } catch (err) {
     const message = err instanceof Error ? err.message : "X post failed";
@@ -93,6 +94,11 @@ function describeXError(err: unknown): string {
   return status ? `${status} from X: ${detail}` : String(detail);
 }
 
+/** Archive ids first, then the stored ones, deduplicated. Chunked by 100 below. */
+export function statsTweetIds(tweetIds: string[]): string[] {
+  return [...new Set([...ARCHIVE_TWEET_IDS, ...tweetIds.filter(Boolean)])];
+}
+
 export async function fetchCumulativeStats(tweetIds: string[]): Promise<StatsResult> {
   const client = readClient();
   if (!client) {
@@ -101,7 +107,9 @@ export async function fetchCumulativeStats(tweetIds: string[]): Promise<StatsRes
       reason: "no X read credentials: set X_API_KEY/SECRET/ACCESS_* or X_BEARER_TOKEN",
     };
   }
-  const ids = tweetIds.filter(Boolean).slice(-100);
+  // The frozen @MajorBaguette days 1-32 always count, whatever the state holds.
+  // Lookups by id work across accounts with the same read credentials.
+  const ids = statsTweetIds(tweetIds);
   if (ids.length === 0) {
     return {
       ok: false,
@@ -119,7 +127,7 @@ export async function fetchCumulativeStats(tweetIds: string[]): Promise<StatsRes
   };
 
   try {
-    // X caps `tweets` lookups at 100 ids per call; we never keep more than that.
+    // X caps `tweets` lookups at 100 ids per call.
     for (let i = 0; i < ids.length; i += 100) {
       const chunk = ids.slice(i, i + 100);
       const res = await client.v2.tweets(chunk, {
@@ -184,10 +192,13 @@ async function elonComment(
   ids: string[],
 ): Promise<{ text: string; url: string } | null> {
   try {
-    const mention = await client.v2.search(`from:${ELON_HANDLE} to:${CREATOR_HANDLE}`, {
-      max_results: 10,
-      "tweet.fields": ["created_at", "conversation_id", "in_reply_to_user_id"],
-    });
+    const mention = await client.v2.search(
+      `from:${ELON_HANDLE} (to:${POSTING_HANDLE} OR to:${CREATOR_HANDLE})`,
+      {
+        max_results: 10,
+        "tweet.fields": ["created_at", "conversation_id", "in_reply_to_user_id"],
+      },
+    );
     const direct = mention.tweets?.[0];
     if (direct) {
       return { text: direct.text, url: `https://x.com/${ELON_HANDLE}/status/${direct.id}` };
