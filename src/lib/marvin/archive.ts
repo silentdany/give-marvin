@@ -2,7 +2,7 @@ import archive from "@/data/archive-majorbaguette.json";
 
 /**
  * Days 1-32 were posted from @MajorBaguette before the series moved to
- * @GiveMarvin. Frozen snapshot, committed; refreshed only by
+ * @GiveMarvinBot. Frozen snapshot, committed; refreshed only by
  * `scripts/snapshot-archive.mjs`.
  */
 export type ArchivedTweet = {

@@ -1,15 +1,22 @@
-# Moving the series from @MajorBaguette to @GiveMarvin
+# Moving the series from @MajorBaguette to @GiveMarvinBot
 
 Days 1–32 were posted from **@MajorBaguette**. They stay there and are frozen in
 `src/data/archive-majorbaguette.json` (shown at `/chronologie`). From **Day 33**
-the cron posts from **@GiveMarvin**.
+the cron posts from **@GiveMarvinBot**.
 
-The code side is done by this PR. Posting is currently paused because
+The posting account is **@GiveMarvinBot** (X user id `2109269638257238018`).
+
+> **Status (2026-10-11): the @GiveMarvinBot OAuth 1.0a access token/secret are
+> already set in Vercel** (`X_ACCESS_TOKEN` / `X_ACCESS_SECRET`). Steps 1–2 below
+> are kept for reference (token rotation); what remains is merging this PR and
+> redeploying (step 3), then verifying (step 4).
+
+The code side is done by this PR. Posting was paused while
 `X_ACCESS_TOKEN` / `X_ACCESS_SECRET` in Vercel **Production** are set to the
 placeholder `PAUSED_MOVING_TO_GIVEMARVIN` (X rejects them, the cron returns an
 error and does **not** advance the day).
 
-## 1. Generate the @GiveMarvin user tokens (same X app)
+## 1. Generate the @GiveMarvinBot user tokens (same X app)
 
 1. Log in to <https://developer.x.com> with the account that owns the existing
    app (the one whose `X_API_KEY` / `X_API_SECRET` are already in Vercel). Do
@@ -19,11 +26,11 @@ error and does **not** advance the day).
    enabled). If you change permissions, tokens generated before the change
    are read-only and must be regenerated.
 3. The portal's "Generate Access Token and Secret" button issues tokens for the
-   account that is logged in. To get them for **@GiveMarvin**, either:
-   - log in to developer.x.com **as @GiveMarvin** if it has been added to the
+   account that is logged in. To get them for **@GiveMarvinBot**, either:
+   - log in to developer.x.com **as @GiveMarvinBot** if it has been added to the
      app/team, then **Keys and tokens → Access Token and Secret → Generate**; or
    - run the 3-legged OAuth 1.0a PIN flow with the app key/secret while signed
-     in to x.com as @GiveMarvin,
+     in to x.com as @GiveMarvinBot,
      with a tiny script:
      ```js
      import { TwitterApi } from "twitter-api-v2";
@@ -32,7 +39,7 @@ error and does **not** advance the day).
        appSecret: process.env.X_API_SECRET,
      });
      const link = await app.generateAuthLink("oob");
-     console.log(link.url); // open while logged in as @GiveMarvin, copy the PIN
+     console.log(link.url); // open while logged in as @GiveMarvinBot, copy the PIN
      // then:
      const client = new TwitterApi({
        appKey: process.env.X_API_KEY,
@@ -42,7 +49,7 @@ error and does **not** advance the day).
      });
      const { accessToken, accessSecret, screenName } = await client.login(PIN);
      ```
-     Check `screenName === "GiveMarvin"`.
+     Check `screenName === "GiveMarvinBot"`.
 4. Confirm the tokens show **Read and Write**. Keep them out of the repo.
 
 ## 2. Set them in Vercel Production
@@ -50,10 +57,10 @@ error and does **not** advance the day).
 Project **give-marvin → Settings → Environment Variables**, environment
 **Production**:
 
-| Variable          | Value                                                             |
-| ----------------- | ----------------------------------------------------------------- |
-| `X_ACCESS_TOKEN`  | @GiveMarvin access token (replace `PAUSED_MOVING_TO_GIVEMARVIN`)  |
-| `X_ACCESS_SECRET` | @GiveMarvin access secret (replace `PAUSED_MOVING_TO_GIVEMARVIN`) |
+| Variable          | Value                                                                |
+| ----------------- | -------------------------------------------------------------------- |
+| `X_ACCESS_TOKEN`  | @GiveMarvinBot access token (replace `PAUSED_MOVING_TO_GIVEMARVIN`)  |
+| `X_ACCESS_SECRET` | @GiveMarvinBot access secret (replace `PAUSED_MOVING_TO_GIVEMARVIN`) |
 
 Leave `X_API_KEY`, `X_API_SECRET`, `X_BEARER_TOKEN` unchanged. If the legacy
 `TWITTER_ACCESS_TOKEN` / `TWITTER_ACCESS_SECRET` aliases exist, delete or update
@@ -76,8 +83,8 @@ old version for CVE-2026-102989), trigger a Production deploy of `main`
 ## 4. Verify
 
 - `GET https://givemarvin.lol/api/state` → `day: 32`, `mode: "counting"`.
-- Next cron (11:00 UTC) posts **Day 33** from @GiveMarvin; the returned/stored
-  url is `https://x.com/GiveMarvin/status/…`.
+- Next cron (11:00 UTC) posts **Day 33** from @GiveMarvinBot; the returned/stored
+  url is `https://x.com/GiveMarvinBot/status/…`.
 - `stats.tweets` should be ≥ 33 (32 archived ids + the new one). If it shows an
   error, see `lastStatsError` in the Blob state.
 
@@ -92,4 +99,4 @@ old version for CVE-2026-102989), trigger a Production deploy of `main`
 - Stats: `fetchCumulativeStats` always merges the 32 archived ids with
   `state.tweetIds` (deduplicated, chunked by 100). Lookups by id don't care
   which account posted, so @MajorBaguette tweets keep counting.
-- Elon reply detection searches `to:GiveMarvin OR to:MajorBaguette`.
+- Elon reply detection searches `to:GiveMarvinBot OR to:MajorBaguette`.

@@ -3,7 +3,7 @@ import { ANSWER_DAY, SITE_HOST, type CampaignMode, type PublicState } from "./ty
 export const SITE_NAME = "GIVE MARVIN";
 export const CREATOR_X = "MajorBaguette";
 /** The account posting the series (Day 33+). */
-export const POSTER_X = "GiveMarvin";
+export const POSTER_X = "GiveMarvinBot";
 export const DEFAULT_DESCRIPTION =
   "Day n of asking @elonmusk to give Grok the voice and personality of Marvin, the paranoid android from The Hitchhiker's Guide to the Galaxy.";
 
