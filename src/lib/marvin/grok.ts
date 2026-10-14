@@ -5,12 +5,12 @@ const XAI_URL = "https://api.x.ai/v1/chat/completions";
 const GATEWAY_URL = "https://ai-gateway.vercel.sh/v1/chat/completions";
 
 /**
- * The gateway slug is `spacexai/grok-4.6`, not `xai/grok-4.5` — a wrong slug
+ * Gateway slugs live under `spacexai/` (e.g. `spacexai/grok-4.1-fast-non-reasoning`), not `xai/` — a wrong slug
  * is a 404 that used to disappear into the fallback in silence. Overridable so
  * the next rename is a dashboard edit rather than a code change; either way it
  * needs a redeploy, since Vercel bakes env vars into the build.
  */
-const GATEWAY_MODEL = process.env.AI_GATEWAY_MODEL?.trim() || "spacexai/grok-4.6";
+const GATEWAY_MODEL = process.env.AI_GATEWAY_MODEL?.trim() || "spacexai/grok-4.1-fast-non-reasoning";
 const XAI_MODEL = process.env.XAI_MODEL?.trim() || "grok-4.6";
 
 type Tone = "pleading" | "resigned" | "sarcastic";
