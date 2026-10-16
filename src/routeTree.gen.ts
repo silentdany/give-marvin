@@ -18,6 +18,8 @@ import { Route as ApiOgRouteImport } from './routes/api/og'
 import { Route as ApiShameRouteImport } from './routes/api/shame'
 import { Route as ApiStateRouteImport } from './routes/api/state'
 import { Route as ApiVisitRouteImport } from './routes/api/visit'
+import { Route as DayNRouteImport } from './routes/day.$n'
+import { Route as OgDayFileRouteImport } from './routes/og/day.$file'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -64,6 +66,16 @@ const ApiVisitRoute = ApiVisitRouteImport.update({
   path: '/api/visit',
   getParentRoute: () => rootRouteImport,
 } as any)
+const DayNRoute = DayNRouteImport.update({
+  id: '/day/$n',
+  path: '/day/$n',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const OgDayFileRoute = OgDayFileRouteImport.update({
+  id: '/og/day/$file',
+  path: '/og/day/$file',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -75,6 +87,8 @@ export interface FileRoutesByFullPath {
   '/api/shame': typeof ApiShameRoute
   '/api/state': typeof ApiStateRoute
   '/api/visit': typeof ApiVisitRoute
+  '/day/$n': typeof DayNRoute
+  '/og/day/$file': typeof OgDayFileRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -86,6 +100,8 @@ export interface FileRoutesByTo {
   '/api/shame': typeof ApiShameRoute
   '/api/state': typeof ApiStateRoute
   '/api/visit': typeof ApiVisitRoute
+  '/day/$n': typeof DayNRoute
+  '/og/day/$file': typeof OgDayFileRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -98,6 +114,8 @@ export interface FileRoutesById {
   '/api/shame': typeof ApiShameRoute
   '/api/state': typeof ApiStateRoute
   '/api/visit': typeof ApiVisitRoute
+  '/day/$n': typeof DayNRoute
+  '/og/day/$file': typeof OgDayFileRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -111,6 +129,8 @@ export interface FileRouteTypes {
     | '/api/shame'
     | '/api/state'
     | '/api/visit'
+    | '/day/$n'
+    | '/og/day/$file'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -122,6 +142,8 @@ export interface FileRouteTypes {
     | '/api/shame'
     | '/api/state'
     | '/api/visit'
+    | '/day/$n'
+    | '/og/day/$file'
   id:
     | '__root__'
     | '/'
@@ -133,6 +155,8 @@ export interface FileRouteTypes {
     | '/api/shame'
     | '/api/state'
     | '/api/visit'
+    | '/day/$n'
+    | '/og/day/$file'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -145,6 +169,8 @@ export interface RootRouteChildren {
   ApiShameRoute: typeof ApiShameRoute
   ApiStateRoute: typeof ApiStateRoute
   ApiVisitRoute: typeof ApiVisitRoute
+  DayNRoute: typeof DayNRoute
+  OgDayFileRoute: typeof OgDayFileRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -212,6 +238,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiVisitRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/day/$n': {
+      id: '/day/$n'
+      path: '/day/$n'
+      fullPath: '/day/$n'
+      preLoaderRoute: typeof DayNRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/og/day/$file': {
+      id: '/og/day/$file'
+      path: '/og/day/$file'
+      fullPath: '/og/day/$file'
+      preLoaderRoute: typeof OgDayFileRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -225,6 +265,8 @@ const rootRouteChildren: RootRouteChildren = {
   ApiShameRoute: ApiShameRoute,
   ApiStateRoute: ApiStateRoute,
   ApiVisitRoute: ApiVisitRoute,
+  DayNRoute: DayNRoute,
+  OgDayFileRoute: OgDayFileRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

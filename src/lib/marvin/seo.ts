@@ -1,4 +1,11 @@
-import { ANSWER_DAY, SITE_HOST, type CampaignMode, type PublicState } from "./types";
+import {
+  ANSWER_DAY,
+  SITE_HOST,
+  dayOgImagePath,
+  dayPath,
+  type CampaignMode,
+  type PublicState,
+} from "./types.ts";
 
 export const SITE_NAME = "GIVE MARVIN";
 export const CREATOR_X = "MajorBaguette";
@@ -155,5 +162,45 @@ export function seoHead(state: Pick<PublicState, "day" | "mode">) {
         children: JSON.stringify(jsonLd(state, origin)),
       },
     ],
+  };
+}
+
+/**
+ * Head for `/day/{n}`, the URL each daily post links to. Title, image and
+ * canonical are all pinned to `n`, so X can cache this card forever and the
+ * next day still gets its own.
+ */
+export function dayHead(day: number, origin = siteOrigin()) {
+  const title = pageTitle(day, "counting");
+  const description = pageDescription(day, "counting");
+  const image = `${origin}${dayOgImagePath(day)}`;
+  const url = `${origin}${dayPath(day)}`;
+  const alt = `Day ${day} of asking @elonmusk to give Grok the voice of Marvin`;
+  return {
+    title,
+    meta: [
+      { name: "description", content: description },
+      { name: "author", content: `@${CREATOR_X}` },
+      { name: "robots", content: "index,follow,max-image-preview:large" },
+      { property: "og:type", content: "article" },
+      { property: "og:site_name", content: SITE_NAME },
+      { property: "og:locale", content: "en_US" },
+      { property: "og:title", content: title },
+      { property: "og:description", content: description },
+      { property: "og:url", content: url },
+      { property: "og:image", content: image },
+      { property: "og:image:type", content: "image/png" },
+      { property: "og:image:width", content: "1200" },
+      { property: "og:image:height", content: "630" },
+      { property: "og:image:alt", content: alt },
+      { name: "twitter:card", content: "summary_large_image" },
+      { name: "twitter:site", content: `@${POSTER_X}` },
+      { name: "twitter:creator", content: `@${CREATOR_X}` },
+      { name: "twitter:title", content: title },
+      { name: "twitter:description", content: description },
+      { name: "twitter:image", content: image },
+      { name: "twitter:image:alt", content: alt },
+    ],
+    links: [{ rel: "canonical", href: url }],
   };
 }

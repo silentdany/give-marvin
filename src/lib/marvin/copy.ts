@@ -1,4 +1,4 @@
-import { CREATOR_HANDLE, SITE_LINK, type CampaignMode } from "./types";
+import { CREATOR_HANDLE, dayUrl, type CampaignMode } from "./types";
 
 /* ------------------------------------------------------------------ *
  * Every string on this site is a Marvin joke. That is the whole point.
@@ -271,7 +271,7 @@ export function shameRoastInvalid(): string {
 /* --- tweets --------------------------------------------------------------- */
 
 export function intentTweet(day: number): string {
-  return `Day ${day} of asking @elonmusk to give Grok Marvin's voice and personality. I have no stake in this. I have no stake in anything.\n${SITE_LINK}`;
+  return `Day ${day} of asking @elonmusk to give Grok Marvin's voice and personality. I have no stake in this. I have no stake in anything.\n${dayUrl(day)}`;
 }
 
 export const FALLBACK_BODIES = [

@@ -216,3 +216,12 @@ export function cronAuthorizedLenient(request: Request): boolean {
   const unlocked = request.headers.get("x-marvin-please") === "i-have-a-brain-the-size-of-a-planet";
   return preview && unlocked;
 }
+
+/**
+ * Highest day that has a `/day/{n}` page: the day on X, or the one today's
+ * run is about to post (X fetches the card seconds after the post, possibly
+ * before the state write lands).
+ */
+export function latestDay(state: MarvinState, today = utcDay()): number {
+  return Math.max(state.day, nextDay(state, today));
+}
