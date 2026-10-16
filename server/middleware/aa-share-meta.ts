@@ -1,3 +1,7 @@
+import { stripShareMetaTags } from "../../scripts/grok-pwa-shared.mjs";
+import { dayHead } from "../../src/lib/marvin/seo";
+import { parseDayParam } from "../../src/lib/marvin/types";
+
 /**
  * The Grok PWA injector strips og:image on *.vercel.app hosts on purpose.
  * This app lives on Vercel. Re-stamp the share card after that pass.
@@ -12,17 +16,47 @@ function shareOrigin(event: { url: URL; req: { headers: Headers } }): string {
   return `https://${host.split(",")[0]!.trim()}`;
 }
 
-function inject(response: Response, origin: string): Response {
+const escapeAttr = (v: string) =>
+  v.replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+
+/**
+ * `/day/{n}` is the URL each post links to; X caches its card by that URL.
+ * The platform pass replaced the page's share tags with generic ones, so put
+ * the day's own (og:image = /og/day/{n}.png) back, and only those.
+ */
+export function dayShareTags(day: number): string {
+  return dayHead(day)
+    .meta.filter((m) => {
+      const key = "property" in m ? m.property : m.name;
+      return /^(og|twitter):/.test(key ?? "");
+    })
+    .map((m) =>
+      "property" in m
+        ? `<meta property="${m.property}" content="${escapeAttr(m.content)}">`
+        : `<meta name="${m.name}" content="${escapeAttr(m.content)}">`,
+    )
+    .join("");
+}
+
+export function dayFromPath(path: string): number | null {
+  const match = /^\/day\/([^/]+)\/?$/.exec(path);
+  return parseDayParam(match?.[1]);
+}
+
+function inject(response: Response, origin: string, day: number | null): Response {
   if (!response.body) return response;
   const image = `${origin}/api/og`;
-  const tags = [
-    `<meta property="og:image" content="${image}">`,
-    `<meta property="og:image:secure_url" content="${image}">`,
-    `<meta property="og:image:type" content="image/png">`,
-    `<meta property="og:image:width" content="1200">`,
-    `<meta property="og:image:height" content="630">`,
-    `<meta name="twitter:image" content="${image}">`,
-  ].join("");
+  const tags =
+    day !== null
+      ? dayShareTags(day)
+      : [
+          `<meta property="og:image" content="${image}">`,
+          `<meta property="og:image:secure_url" content="${image}">`,
+          `<meta property="og:image:type" content="image/png">`,
+          `<meta property="og:image:width" content="1200">`,
+          `<meta property="og:image:height" content="630">`,
+          `<meta name="twitter:image" content="${image}">`,
+        ].join("");
 
   const decoder = new TextDecoder();
   const encoder = new TextEncoder();
@@ -45,7 +79,9 @@ function inject(response: Response, origin: string): Response {
           }
           return;
         }
-        const out = leftover.slice(0, idx) + tags + leftover.slice(idx);
+        const head =
+          day !== null ? stripShareMetaTags(leftover.slice(0, idx)) : leftover.slice(0, idx);
+        const out = head + tags + leftover.slice(idx);
         leftover = "";
         done = true;
         controller.enqueue(encoder.encode(out));
@@ -78,5 +114,6 @@ export default async function shareMetaMiddleware(
   if (!(result instanceof Response)) return result;
   const type = result.headers.get("content-type") ?? "";
   if (!type.includes("text/html")) return result;
-  return inject(result, shareOrigin(event));
+  const day = result.status === 200 ? dayFromPath(path) : null;
+  return inject(result, shareOrigin(event), day);
 }

@@ -3,6 +3,7 @@ import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { dirname } from "node:path";
 import {
   DAY_LINE,
+  dayUrl,
   SITE_LINK,
   STATE_BLOB_PATH,
   type MarvinState,
@@ -19,7 +20,7 @@ function utcDay(d = new Date()): string {
 }
 
 function seedTweetText(day: number): string {
-  return `${DAY_LINE(day)}\n${fallbackBody(day)}\n${SITE_LINK}`;
+  return `${DAY_LINE(day)}\n${fallbackBody(day)}\n${dayUrl(day)}`;
 }
 
 export function emptyStats(): TweetStats {

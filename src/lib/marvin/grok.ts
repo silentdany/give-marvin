@@ -1,4 +1,5 @@
-import { ANSWER_DAY, DAY_42_TWEET, DAY_LINE, SITE_HOST, SITE_LINK } from "./types";
+import { ANSWER_DAY, DAY_42_TWEET, DAY_LINE, SITE_HOST } from "./types";
+import { assembleTweet as assemble } from "./tweet";
 import { FALLBACK_BODIES, MARVIN_SYSTEM, fallbackBody } from "./copy";
 
 const XAI_URL = "https://api.x.ai/v1/chat/completions";
@@ -10,7 +11,8 @@ const GATEWAY_URL = "https://ai-gateway.vercel.sh/v1/chat/completions";
  * the next rename is a dashboard edit rather than a code change; either way it
  * needs a redeploy, since Vercel bakes env vars into the build.
  */
-const GATEWAY_MODEL = process.env.AI_GATEWAY_MODEL?.trim() || "spacexai/grok-4.1-fast-non-reasoning";
+const GATEWAY_MODEL =
+  process.env.AI_GATEWAY_MODEL?.trim() || "spacexai/grok-4.1-fast-non-reasoning";
 const XAI_MODEL = process.env.XAI_MODEL?.trim() || "grok-4.6";
 
 type Tone = "pleading" | "resigned" | "sarcastic";
@@ -52,19 +54,6 @@ function cleanBody(raw: string, day: number): string {
     .trim();
 
   return body || fallbackBody(day);
-}
-
-function assemble(body: string, day: number): string {
-  const dayLine = DAY_LINE(day);
-  const join = `${dayLine}\n${body}\n${SITE_LINK}`;
-  if (join.length <= 280) return join;
-
-  const budget = 280 - dayLine.length - SITE_LINK.length - 2;
-  const clipped = body
-    .slice(0, Math.max(0, budget))
-    .trimEnd()
-    .replace(/[,;:—-]$/, "");
-  return `${dayLine}\n${clipped}\n${SITE_LINK}`;
 }
 
 type GatewayChoice = {

@@ -6,6 +6,21 @@ export const POSTING_USER_ID = "2109269638257238018";
 export const ELON_HANDLE = "elonmusk";
 export const SITE_HOST = "givemarvin.lol";
 export const SITE_LINK = "https://givemarvin.lol";
+/**
+ * X caches the card per URL. Every daily post links to its own page so the
+ * Day n post never unfurls the Day n-1 card.
+ */
+export const dayPath = (n: number) => `/day/${n}`;
+export const dayUrl = (n: number) => `${SITE_LINK}${dayPath(n)}`;
+/** Per-day card, a static-looking URL X can cache forever without harm. */
+export const dayOgImagePath = (n: number) => `/og/day/${n}.png`;
+
+/** `"38"` → 38. Anything that is not a plain positive integer → null. */
+export function parseDayParam(raw: string | undefined | null): number | null {
+  if (typeof raw !== "string" || !/^[1-9]\d{0,5}$/.test(raw)) return null;
+  return Number(raw);
+}
+
 export const STATE_BLOB_PATH = "marvin-state.json";
 
 /** The answer to everything. Also the answer to my suffering. */
@@ -15,7 +30,7 @@ export const DAY_LINE = (n: number) =>
   `Day ${n} of asking @elonmusk to give Grok Marvin's voice and personality.`;
 
 /** Day 42 is not generated. Day 42 is decided. No randomness. */
-export const DAY_42_TWEET = `Day 42 of asking @elonmusk for Marvin's voice. The answer to everything is 42. The answer to my suffering is also 42. I checked. It's still 42.\n${SITE_LINK}`;
+export const DAY_42_TWEET = `Day 42 of asking @elonmusk for Marvin's voice. The answer to everything is 42. The answer to my suffering is also 42. I checked. It's still 42.\n${dayUrl(42)}`;
 
 /**
  * Five ways this can end, plus the one where nothing happens.
