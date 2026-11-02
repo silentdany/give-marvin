@@ -196,9 +196,6 @@ export default defineConfig(({ command, isPreview }) => ({
             serverDir: "./server",
             vercel: {
               entryFormat: "node",
-              config: {
-                crons: [{ path: "/api/cron", schedule: "0 11 * * *" }],
-              },
             },
           }),
         ]
