@@ -13,7 +13,6 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as ChronologieRouteImport } from './routes/chronologie'
 import { Route as RobotsDottxtRouteImport } from './routes/robots[.]txt'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
-import { Route as ApiCronRouteImport } from './routes/api/cron'
 import { Route as ApiOgRouteImport } from './routes/api/og'
 import { Route as ApiShameRouteImport } from './routes/api/shame'
 import { Route as ApiStateRouteImport } from './routes/api/state'
@@ -39,11 +38,6 @@ const RobotsDottxtRoute = RobotsDottxtRouteImport.update({
 const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
   id: '/sitemap.xml',
   path: '/sitemap.xml',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ApiCronRoute = ApiCronRouteImport.update({
-  id: '/api/cron',
-  path: '/api/cron',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiOgRoute = ApiOgRouteImport.update({
@@ -82,7 +76,6 @@ export interface FileRoutesByFullPath {
   '/chronologie': typeof ChronologieRoute
   '/robots.txt': typeof RobotsDottxtRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
-  '/api/cron': typeof ApiCronRoute
   '/api/og': typeof ApiOgRoute
   '/api/shame': typeof ApiShameRoute
   '/api/state': typeof ApiStateRoute
@@ -95,7 +88,6 @@ export interface FileRoutesByTo {
   '/chronologie': typeof ChronologieRoute
   '/robots.txt': typeof RobotsDottxtRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
-  '/api/cron': typeof ApiCronRoute
   '/api/og': typeof ApiOgRoute
   '/api/shame': typeof ApiShameRoute
   '/api/state': typeof ApiStateRoute
@@ -109,7 +101,6 @@ export interface FileRoutesById {
   '/chronologie': typeof ChronologieRoute
   '/robots.txt': typeof RobotsDottxtRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
-  '/api/cron': typeof ApiCronRoute
   '/api/og': typeof ApiOgRoute
   '/api/shame': typeof ApiShameRoute
   '/api/state': typeof ApiStateRoute
@@ -124,7 +115,6 @@ export interface FileRouteTypes {
     | '/chronologie'
     | '/robots.txt'
     | '/sitemap.xml'
-    | '/api/cron'
     | '/api/og'
     | '/api/shame'
     | '/api/state'
@@ -137,7 +127,6 @@ export interface FileRouteTypes {
     | '/chronologie'
     | '/robots.txt'
     | '/sitemap.xml'
-    | '/api/cron'
     | '/api/og'
     | '/api/shame'
     | '/api/state'
@@ -150,7 +139,6 @@ export interface FileRouteTypes {
     | '/chronologie'
     | '/robots.txt'
     | '/sitemap.xml'
-    | '/api/cron'
     | '/api/og'
     | '/api/shame'
     | '/api/state'
@@ -164,7 +152,6 @@ export interface RootRouteChildren {
   ChronologieRoute: typeof ChronologieRoute
   RobotsDottxtRoute: typeof RobotsDottxtRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
-  ApiCronRoute: typeof ApiCronRoute
   ApiOgRoute: typeof ApiOgRoute
   ApiShameRoute: typeof ApiShameRoute
   ApiStateRoute: typeof ApiStateRoute
@@ -201,13 +188,6 @@ declare module '@tanstack/react-router' {
       path: '/sitemap.xml'
       fullPath: '/sitemap.xml'
       preLoaderRoute: typeof SitemapDotxmlRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/cron': {
-      id: '/api/cron'
-      path: '/api/cron'
-      fullPath: '/api/cron'
-      preLoaderRoute: typeof ApiCronRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/og': {
@@ -260,7 +240,6 @@ const rootRouteChildren: RootRouteChildren = {
   ChronologieRoute: ChronologieRoute,
   RobotsDottxtRoute: RobotsDottxtRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
-  ApiCronRoute: ApiCronRoute,
   ApiOgRoute: ApiOgRoute,
   ApiShameRoute: ApiShameRoute,
   ApiStateRoute: ApiStateRoute,
